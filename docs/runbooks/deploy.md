@@ -25,3 +25,5 @@
 - Aucun secret dans git (CI via GitHub Secrets uniquement).
 - Seed / comptes démo jamais en production (`RUN_SEED=false`).
 - En cas de doute sécu → bloquer le déploiement.
+
+<!-- CI validation PR -->
