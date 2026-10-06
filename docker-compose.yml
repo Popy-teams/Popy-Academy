@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: popy
+      POSTGRES_PASSWORD: popy
+      POSTGRES_DB: popy_academy
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U popy -d popy_academy"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    environment:
+      PORT: "5001"
+      DATABASE_URL: postgresql://popy:popy@postgres:5432/popy_academy?schema=public
+      JWT_ACCESS_SECRET: dev-access-secret-change-me-in-production-32chars
+      JWT_REFRESH_SECRET: dev-refresh-secret-change-me-in-production-32chars
+      JWT_ACCESS_TTL_SECONDS: "900"
+      JWT_REFRESH_TTL_SECONDS: "604800"
+      MFA_ISSUER: Popy Academy
+      APP_ORIGIN: http://localhost:8443
+      NODE_ENV: development
+      RETENTION_AUDIT_DAYS: "365"
+      RETENTION_SYNC_DAYS: "90"
+      RETENTION_ROBOT_EVENTS_DAYS: "180"
+      BILLING_MODE: demo
+      MFA_REQUIRED_ROLES: TEACHER,ADMIN
+      RUN_SEED: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8443:8443"
+    environment:
+      PORT: "8443"
+      CHOKIDAR_USEPOLLING: "true"
+      VITE_API_URL: "http://localhost:5001"
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./index.html:/app/index.html
+      - ./vite.config.ts:/app/vite.config.ts
+      - ./.figma/make/site.json:/app/.figma/make/site.json
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

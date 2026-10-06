@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: popy
+          POSTGRES_PASSWORD: popy
+          POSTGRES_DB: popy_academy
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U popy -d popy_academy"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: postgresql://popy:popy@localhost:5432/popy_academy?schema=public
+      JWT_ACCESS_SECRET: ci-access-secret-change-me-in-production-32
+      JWT_REFRESH_SECRET: ci-refresh-secret-change-me-in-production-32
+      JWT_ACCESS_TTL_SECONDS: "900"
+      JWT_REFRESH_TTL_SECONDS: "604800"
+      MFA_ISSUER: Popy Academy CI
+      PORT: "5001"
+      APP_ORIGIN: http://localhost:8443
+      NODE_ENV: test
+      BILLING_MODE: demo
+      MFA_REQUIRED_ROLES: ""
+      RETENTION_AUDIT_DAYS: "365"
+      RETENTION_SYNC_DAYS: "90"
+      RETENTION_ROBOT_EVENTS_DAYS: "180"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: backend/pnpm-lock.yaml
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm exec prisma migrate deploy
+      - run: pnpm test

@@ -1,0 +1,555 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CHILD
+  PARENT
+  TEACHER
+  AESH
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum ActivityStatus {
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ConsentStatus {
+  GRANTED
+  REVOKED
+  PENDING
+}
+
+enum SyncStatus {
+  SYNCED
+  REJECTED
+  CONFLICT
+  PENDING
+}
+
+enum RobotStatus {
+  ONLINE
+  OFFLINE
+  MAINTENANCE
+  REVOKED
+}
+
+enum ValidationStatus {
+  DRAFT
+  PENDING
+  VALIDATED
+  REJECTED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String?    @unique
+  phone        String?
+  passwordHash String?    @map("password_hash")
+  displayName  String     @map("display_name")
+  role         UserRole
+  status       UserStatus @default(ACTIVE)
+  lastLoginAt  DateTime?  @map("last_login_at")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  sessions          Session[]
+  refreshTokens     RefreshToken[]
+  mfaSecret         MfaSecret?
+  guardianships     Guardianship[]     @relation("GuardianUser")
+  staffAssignments  StaffAssignment[]
+  assignedActivities Activity[]        @relation("AssignedBy")
+  observations      Observation[]
+  accommodations    Accommodation[]    @relation("ResponsibleUser")
+  accessibilityUpdates AccessibilityProfile[] @relation("UpdatedBy")
+  competencyEvidence CompetencyEvidence[] @relation("ObservedBy")
+  messages          Message[]
+  consents          Consent[]
+  notifications     Notification[]
+  robotPairings     RobotPairing[]     @relation("PairedBy")
+  syncOperations    SyncOperation[]
+  auditLogs         AuditLog[]
+  validatedContents LearningContent[]  @relation("ValidatedBy")
+  subscriptions     Subscription[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  userAgent String?  @map("user_agent")
+  ipHash    String?  @map("ip_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+  replacedBy String? @map("replaced_by")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model MfaSecret {
+  id          String   @id @default(cuid())
+  userId      String   @unique @map("user_id")
+  secret      String
+  enabled     Boolean  @default(false)
+  verifiedAt  DateTime? @map("verified_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("mfa_secrets")
+}
+
+model ChildProfile {
+  id           String   @id @default(cuid())
+  displayName  String   @map("display_name")
+  birthYear    Int      @map("birth_year")
+  schoolLevel  String   @map("school_level")
+  avatar       String?
+  locale       String   @default("fr")
+  currentXp    Int      @default(0) @map("current_xp")
+  currentLevel Int      @default(1) @map("current_level")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  guardianships        Guardianship[]
+  classMemberships     ClassMembership[]
+  staffAssignments     StaffAssignment[]
+  activities           Activity[]
+  competencyEvidence   CompetencyEvidence[]
+  accessibilityProfile AccessibilityProfile?
+  accommodations       Accommodation[]
+  observations         Observation[]
+  consents             Consent[]
+  robotPairings        RobotPairing[]
+
+  @@map("child_profiles")
+}
+
+model Guardianship {
+  id             String    @id @default(cuid())
+  childId        String    @map("child_id")
+  guardianUserId String    @map("guardian_user_id")
+  relationship   String
+  isPrimary      Boolean   @default(false) @map("is_primary")
+  validFrom      DateTime  @default(now()) @map("valid_from")
+  validUntil     DateTime? @map("valid_until")
+
+  child    ChildProfile @relation(fields: [childId], references: [id], onDelete: Cascade)
+  guardian User         @relation("GuardianUser", fields: [guardianUserId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, guardianUserId])
+  @@index([guardianUserId])
+  @@map("guardianships")
+}
+
+model School {
+  id         String @id @default(cuid())
+  name       String
+  academy    String?
+  country    String @default("FR")
+  dataRegion String @default("eu-west") @map("data_region")
+
+  classes       Class[]
+  robotDevices  RobotDevice[]
+
+  @@map("schools")
+}
+
+model Class {
+  id         String @id @default(cuid())
+  schoolId   String @map("school_id")
+  name       String
+  level      String
+  schoolYear String @map("school_year")
+
+  school           School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  memberships      ClassMembership[]
+  staffAssignments StaffAssignment[]
+  robotPairings    RobotPairing[]
+
+  @@index([schoolId])
+  @@map("classes")
+}
+
+model ClassMembership {
+  id         String    @id @default(cuid())
+  classId    String    @map("class_id")
+  childId    String    @map("child_id")
+  validFrom  DateTime  @default(now()) @map("valid_from")
+  validUntil DateTime? @map("valid_until")
+
+  class Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  child ChildProfile @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, childId])
+  @@map("class_memberships")
+}
+
+model StaffAssignment {
+  id             String    @id @default(cuid())
+  userId         String    @map("user_id")
+  classId        String?   @map("class_id")
+  childId        String?   @map("child_id")
+  assignmentRole UserRole  @map("assignment_role")
+  validFrom      DateTime  @default(now()) @map("valid_from")
+  validUntil     DateTime? @map("valid_until")
+
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class Class?        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  child ChildProfile? @relation(fields: [childId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("staff_assignments")
+}
+
+model Competency {
+  id                String   @id @default(cuid())
+  cycle             String
+  level             String
+  subject           String
+  domain            String
+  officialReference String?  @map("official_reference")
+  label             String
+  description       String?
+  prerequisiteIds   String[] @default([]) @map("prerequisite_ids")
+
+  evidence CompetencyEvidence[]
+
+  @@map("competencies")
+}
+
+model LearningContent {
+  id                     String           @id @default(cuid())
+  contentType            String           @map("content_type")
+  subject                String
+  level                  String
+  title                  String
+  body                   String
+  accessibilityMetadata  Json?            @map("accessibility_metadata")
+  version                String           @default("1.0")
+  validationStatus       ValidationStatus @default(DRAFT) @map("validation_status")
+  validatedById          String?          @map("validated_by")
+  createdAt              DateTime         @default(now()) @map("created_at")
+
+  validatedBy User?      @relation("ValidatedBy", fields: [validatedById], references: [id])
+  activities  Activity[]
+
+  @@map("learning_contents")
+}
+
+model Activity {
+  id              String         @id @default(cuid())
+  contentId       String         @map("content_id")
+  childId         String         @map("child_id")
+  assignedById    String?        @map("assigned_by")
+  status          ActivityStatus @default(ASSIGNED)
+  startedAt       DateTime?      @map("started_at")
+  completedAt     DateTime?      @map("completed_at")
+  score           Float?
+  durationSeconds Int?           @map("duration_seconds")
+  offlineOriginId String?        @unique @map("offline_origin_id")
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  content  LearningContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  child    ChildProfile    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  assignedBy User?         @relation("AssignedBy", fields: [assignedById], references: [id])
+  evidence CompetencyEvidence[]
+
+  @@index([childId])
+  @@map("activities")
+}
+
+model CompetencyEvidence {
+  id            String   @id @default(cuid())
+  childId       String   @map("child_id")
+  competencyId  String   @map("competency_id")
+  activityId    String?  @map("activity_id")
+  masteryLevel  Int      @map("mastery_level")
+  evidenceType  String   @map("evidence_type")
+  observedAt    DateTime @default(now()) @map("observed_at")
+  observedById  String?  @map("observed_by")
+
+  child       ChildProfile @relation(fields: [childId], references: [id], onDelete: Cascade)
+  competency  Competency   @relation(fields: [competencyId], references: [id], onDelete: Cascade)
+  activity    Activity?    @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  observedBy  User?        @relation("ObservedBy", fields: [observedById], references: [id])
+
+  @@index([childId, competencyId])
+  @@map("competency_evidence")
+}
+
+model AccessibilityProfile {
+  id          String   @id @default(cuid())
+  childId     String   @unique @map("child_id")
+  profileName String   @map("profile_name")
+  settings    Json
+  source      String
+  active      Boolean  @default(true)
+  updatedById String?  @map("updated_by")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  child     ChildProfile @relation(fields: [childId], references: [id], onDelete: Cascade)
+  updatedBy User?        @relation("UpdatedBy", fields: [updatedById], references: [id])
+
+  @@map("accessibility_profiles")
+}
+
+model Accommodation {
+  id                 String    @id @default(cuid())
+  childId            String    @map("child_id")
+  documentType       String    @map("document_type")
+  objective          String
+  adaptation         String
+  responsibleUserId  String?   @map("responsible_user_id")
+  frequency          String?
+  validFrom          DateTime  @default(now()) @map("valid_from")
+  reviewAt           DateTime? @map("review_at")
+  effectivenessStatus String?  @map("effectiveness_status")
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  child       ChildProfile @relation(fields: [childId], references: [id], onDelete: Cascade)
+  responsible User?        @relation("ResponsibleUser", fields: [responsibleUserId], references: [id])
+
+  @@index([childId])
+  @@map("accommodations")
+}
+
+model Observation {
+  id              String   @id @default(cuid())
+  childId         String   @map("child_id")
+  authorUserId    String   @map("author_user_id")
+  context         String
+  factText        String   @map("fact_text")
+  strategyUsed    String?  @map("strategy_used")
+  resultText      String?  @map("result_text")
+  visibilityScope String   @map("visibility_scope")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  child  ChildProfile @relation(fields: [childId], references: [id], onDelete: Cascade)
+  author User         @relation(fields: [authorUserId], references: [id], onDelete: Cascade)
+
+  @@index([childId])
+  @@map("observations")
+}
+
+model Message {
+  id           String    @id @default(cuid())
+  threadId     String    @map("thread_id")
+  senderUserId String    @map("sender_user_id")
+  messageType  String    @map("message_type")
+  body         String
+  attachmentId String?   @map("attachment_id")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  readAt       DateTime? @map("read_at")
+
+  sender User @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
+
+  @@index([threadId])
+  @@map("messages")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  title     String
+  body      String
+  channel   String    @default("in_app")
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+model Consent {
+  id              String        @id @default(cuid())
+  childId         String        @map("child_id")
+  guardianUserId  String        @map("guardian_user_id")
+  purpose         String
+  status          ConsentStatus @default(PENDING)
+  policyVersion   String        @map("policy_version")
+  grantedAt       DateTime?     @map("granted_at")
+  revokedAt       DateTime?     @map("revoked_at")
+  evidence        String?
+
+  child    ChildProfile @relation(fields: [childId], references: [id], onDelete: Cascade)
+  guardian User         @relation(fields: [guardianUserId], references: [id], onDelete: Cascade)
+
+  @@index([childId])
+  @@map("consents")
+}
+
+model RobotDevice {
+  id              String      @id @default(cuid())
+  serialNumber    String      @unique @map("serial_number")
+  schoolId        String?     @map("school_id")
+  nickname        String?
+  firmwareVersion String?     @map("firmware_version")
+  status          RobotStatus @default(OFFLINE)
+  pairingSecret   String      @map("pairing_secret")
+  lastSeenAt      DateTime?   @map("last_seen_at")
+
+  school   School?         @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  pairings RobotPairing[]
+  events   RobotEvent[]
+
+  @@map("robot_devices")
+}
+
+model RobotPairing {
+  id         String    @id @default(cuid())
+  robotId    String    @map("robot_id")
+  childId    String?   @map("child_id")
+  classId    String?   @map("class_id")
+  pairedById String    @map("paired_by")
+  validFrom  DateTime  @default(now()) @map("valid_from")
+  validUntil DateTime? @map("valid_until")
+  revokedAt  DateTime? @map("revoked_at")
+
+  robot    RobotDevice   @relation(fields: [robotId], references: [id], onDelete: Cascade)
+  child    ChildProfile? @relation(fields: [childId], references: [id], onDelete: SetNull)
+  class    Class?        @relation(fields: [classId], references: [id], onDelete: SetNull)
+  pairedBy User          @relation("PairedBy", fields: [pairedById], references: [id])
+
+  @@index([robotId])
+  @@map("robot_pairings")
+}
+
+model RobotEvent {
+  id         String   @id @default(cuid())
+  robotId    String   @map("robot_id")
+  eventType  String   @map("event_type")
+  severity   String   @default("info")
+  payload    Json
+  occurredAt DateTime @default(now()) @map("occurred_at")
+
+  robot RobotDevice @relation(fields: [robotId], references: [id], onDelete: Cascade)
+
+  @@index([robotId, occurredAt])
+  @@map("robot_events")
+}
+
+model SyncOperation {
+  id              String     @id @default(cuid())
+  operationId     String     @unique @map("operation_id")
+  deviceId        String?    @map("device_id")
+  userId          String?    @map("user_id")
+  entityType      String     @map("entity_type")
+  entityId        String?    @map("entity_id")
+  operation       String
+  payload         Json
+  clientTimestamp DateTime   @map("client_timestamp")
+  serverTimestamp DateTime   @default(now()) @map("server_timestamp")
+  status          SyncStatus @default(PENDING)
+  conflictReason  String?    @map("conflict_reason")
+  remotePayload   Json?      @map("remote_payload")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@map("sync_operations")
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  actorUserId  String?  @map("actor_user_id")
+  action       String
+  resourceType String   @map("resource_type")
+  resourceId   String?  @map("resource_id")
+  result       String
+  ipHash       String?  @map("ip_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  actor User? @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId, createdAt])
+  @@map("audit_logs")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  TRIALING
+}
+
+enum AccessMode {
+  COMPUTER
+  HYBRID
+}
+
+/// Formules d’abonnement. L’apprentissage sur ordinateur est toujours inclus.
+model SubscriptionPlan {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  name            String
+  description     String
+  priceCentsMonth Int      @map("price_cents_month")
+  currency        String   @default("EUR")
+  maxChildren     Int      @default(1) @map("max_children")
+  computerAccess  Boolean  @default(true) @map("computer_access")
+  robotOptional   Boolean  @default(true) @map("robot_optional")
+  robotIncluded   Boolean  @default(false) @map("robot_included")
+  features        String[] @default([])
+  active          Boolean  @default(true)
+  sortOrder       Int      @default(0) @map("sort_order")
+
+  subscriptions Subscription[]
+
+  @@map("subscription_plans")
+}
+
+model Subscription {
+  id               String             @id @default(cuid())
+  userId           String             @map("user_id")
+  planId           String             @map("plan_id")
+  status           SubscriptionStatus @default(ACTIVE)
+  accessMode       AccessMode         @default(COMPUTER) @map("access_mode")
+  robotEnabled     Boolean            @default(false) @map("robot_enabled")
+  currentPeriodStart DateTime         @default(now()) @map("current_period_start")
+  currentPeriodEnd   DateTime         @map("current_period_end")
+  cancelAtPeriodEnd  Boolean          @default(false) @map("cancel_at_period_end")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+
+  user User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@index([userId, status])
+  @@map("subscriptions")
+}

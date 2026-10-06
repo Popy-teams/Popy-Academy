@@ -1,0 +1,20 @@
+# Préproduction / production — ne pas utiliser le seed démo.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  api:
+    environment:
+      NODE_ENV: production
+      RUN_SEED: "false"
+      BILLING_MODE: ${BILLING_MODE:-stripe}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      MFA_REQUIRED_ROLES: TEACHER,ADMIN
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?set JWT_REFRESH_SECRET}
+      APP_ORIGIN: ${APP_ORIGIN:?set APP_ORIGIN}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://popy:popy@postgres:5432/popy_academy?schema=public}
+
+  web:
+    environment:
+      VITE_API_URL: ${VITE_API_URL:?set VITE_API_URL}

@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Builds
+dist/
+build/
+coverage/
+.cache/
+.vite/
+vite.config.*.timestamp-*
+*.tsbuildinfo
+
+# Env & secrets (keep examples)
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Logs
+logs/
+*.log
+*-debug.log*
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local agent / Figma Make workspace noise
+.claude-replay.*
+.tmp-*
+/.figma/
+/.plugins/
+/.opencode-skills/
+
+# Local screenshots (not project assets)
+/popilot-*.png
