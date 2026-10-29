@@ -1,0 +1,938 @@
+<title>Briefing IA Popy</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@400;600;700&display=swap">
+
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --surface-2: #f0ede8;
+    --border: #e0dbd4;
+    --fg: #1a1916;
+    --fg-muted: #6b6460;
+    --accent: #1d4ed8;
+    --accent-soft: #dbeafe;
+    --accent-mid: #3b82f6;
+    --ok: #15803d;
+    --ok-soft: #dcfce7;
+    --warn: #b45309;
+    --warn-soft: #fef3c7;
+    --red: #b91c1c;
+    --red-soft: #fee2e2;
+    --tag-bg: #e8e4de;
+    --font-display: 'Sora', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111009;
+      --surface: #1c1a16;
+      --surface-2: #242118;
+      --border: #2c2920;
+      --fg: #ede9e3;
+      --fg-muted: #978f86;
+      --accent: #60a5fa;
+      --accent-soft: #172554;
+      --accent-mid: #93c5fd;
+      --ok: #4ade80;
+      --ok-soft: #052e16;
+      --warn: #fbbf24;
+      --warn-soft: #3f2d05;
+      --red: #f87171;
+      --red-soft: #2d0808;
+      --tag-bg: #2c2920;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111009;
+    --surface: #1c1a16;
+    --surface-2: #242118;
+    --border: #2c2920;
+    --fg: #ede9e3;
+    --fg-muted: #978f86;
+    --accent: #60a5fa;
+    --accent-soft: #172554;
+    --accent-mid: #93c5fd;
+    --ok: #4ade80;
+    --ok-soft: #052e16;
+    --warn: #fbbf24;
+    --warn-soft: #3f2d05;
+    --red: #f87171;
+    --red-soft: #2d0808;
+    --tag-bg: #2c2920;
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--fg);
+    margin: 0;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 0;
+    font-size: 0.925rem;
+    line-height: 1.65;
+  }
+
+  /* ── HEADER ── */
+  .page-header {
+    background: var(--accent);
+    color: #fff;
+    padding: 2.5rem max(28px, env(safe-area-inset-left, 0px)) 2rem;
+    margin-left: max(-16px, calc(0px - env(safe-area-inset-left, 0px)));
+    margin-right: max(-16px, calc(0px - env(safe-area-inset-right, 0px)));
+    margin-bottom: 2.5rem;
+  }
+  .page-header .eyebrow {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    opacity: 0.75;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .page-header h1 {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 4vw, 2.3rem);
+    font-weight: 700;
+    margin: 0 0 0.4rem;
+    text-wrap: balance;
+    line-height: 1.2;
+  }
+  .page-header .subtitle { opacity: 0.85; font-size: 0.95rem; max-width: 58ch; }
+  .page-header .meta {
+    margin-top: 1rem;
+    font-size: 0.78rem;
+    opacity: 0.65;
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  /* ── WRAPPER ── */
+  .wrapper { max-width: 920px; margin: 0 auto; padding-bottom: 4rem; }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.4rem;
+    margin-bottom: 2.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    align-items: center;
+  }
+  .toc-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-muted); font-weight: 600; white-space: nowrap; }
+  .toc a { color: var(--accent); text-decoration: none; font-size: 0.85rem; font-weight: 500; white-space: nowrap; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* ── SECTIONS ── */
+  .section { margin-bottom: 3rem; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.7rem;
+    border-bottom: 2px solid var(--border);
+  }
+  .section-num {
+    background: var(--accent);
+    color: #fff;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    font-family: var(--font-display);
+  }
+  h2 { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; margin: 0; text-wrap: balance; }
+  h3 { font-family: var(--font-display); font-size: 0.975rem; font-weight: 600; margin: 1.6rem 0 0.5rem; }
+  p { margin: 0 0 0.75rem; }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-radius: 8px;
+    padding: 0.9rem 1.1rem;
+    margin: 0.9rem 0 1.3rem;
+    font-size: 0.875rem;
+    line-height: 1.55;
+  }
+  .callout strong { display: block; margin-bottom: 0.25rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .callout.info  { background: var(--accent-soft);  border-left: 3px solid var(--accent); }
+  .callout.ok    { background: var(--ok-soft);       border-left: 3px solid var(--ok); }
+  .callout.warn  { background: var(--warn-soft);     border-left: 3px solid var(--warn); }
+  .callout.red   { background: var(--red-soft);      border-left: 3px solid var(--red); }
+
+  /* ── TAGS ── */
+  .tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.18rem 0.5rem;
+    border-radius: 99px;
+    white-space: nowrap;
+  }
+  .tag-ok      { background: var(--ok-soft);   color: var(--ok); }
+  .tag-warn    { background: var(--warn-soft);  color: var(--warn); }
+  .tag-bad     { background: var(--red-soft);   color: var(--red); }
+  .tag-neutral { background: var(--accent-soft); color: var(--accent); }
+  .tag-muted   { background: var(--tag-bg);     color: var(--fg-muted); }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.5rem; }
+
+  /* ── TABLES ── */
+  .table-wrap { overflow-x: auto; margin: 0.6rem 0 1.4rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.855rem; min-width: 380px; }
+  th {
+    text-align: left;
+    padding: 0.5rem 0.85rem;
+    background: var(--surface-2);
+    border-bottom: 2px solid var(--border);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--fg-muted);
+  }
+  td { padding: 0.55rem 0.85rem; border-bottom: 1px solid var(--border); vertical-align: top; min-width: 0; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface-2); }
+  .mono { font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--accent-mid); }
+
+  /* ── OPTION CARDS ── */
+  .option-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; margin: 0.8rem 0 1.4rem; }
+  .option-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+  .option-card.rec {
+    border-color: var(--accent);
+    border-width: 2px;
+  }
+  .option-card.rec::before {
+    content: "★ Recommandé";
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+  .option-title { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; }
+  .option-sub   { font-size: 0.8rem; color: var(--fg-muted); margin-bottom: 0.1rem; }
+  .option-desc  { font-size: 0.845rem; color: var(--fg-muted); line-height: 1.5; flex: 1; }
+
+  /* ── MODEL CARDS ── */
+  .model-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin: 0.8rem 0 1.4rem; }
+  .model-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    min-width: 0;
+  }
+  .model-card.rec { border-color: var(--accent); border-width: 2px; }
+  .model-name { font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; margin-bottom: 0.2rem; }
+  .model-meta { font-size: 0.78rem; color: var(--fg-muted); margin-bottom: 0.4rem; }
+  .model-desc { font-size: 0.82rem; color: var(--fg-muted); line-height: 1.5; }
+
+  /* ── PIPELINE ── */
+  .pipeline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    margin: 0.8rem 0 1.4rem;
+    align-items: stretch;
+  }
+  .pipe-step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    flex: 1;
+    min-width: 130px;
+    position: relative;
+  }
+  .pipe-step + .pipe-step { margin-left: -1px; border-radius: 0; }
+  .pipe-step:first-child { border-radius: 8px 0 0 8px; }
+  .pipe-step:last-child  { border-radius: 0 8px 8px 0; }
+  .pipe-num { font-size: 0.68rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.25rem; }
+  .pipe-label { font-family: var(--font-display); font-weight: 600; font-size: 0.85rem; margin-bottom: 0.2rem; }
+  .pipe-desc  { font-size: 0.78rem; color: var(--fg-muted); line-height: 1.45; }
+  .pipe-step.highlight { background: var(--accent-soft); border-color: var(--accent); }
+
+  /* ── COST HIGHLIGHT ── */
+  .cost-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 0.8rem 0 1.4rem; }
+  .cost-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.2rem;
+    min-width: 0;
+  }
+  .cost-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); font-weight: 600; margin-bottom: 0.3rem; }
+  .cost-value { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); }
+  .cost-sub   { font-size: 0.8rem; color: var(--fg-muted); margin-top: 0.2rem; }
+
+  /* ── HARDWARE CARD ── */
+  .hw-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 0.8rem 0 1.4rem; }
+  .hw-head { background: var(--fg); color: var(--bg); padding: 1rem 1.2rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .hw-model { font-family: var(--font-display); font-weight: 700; font-size: 1rem; flex: 1; min-width: 0; }
+  .hw-price { font-size: 1.2rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .hw-body { padding: 1.1rem 1.2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.9rem; }
+  .hw-stat label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); font-weight: 600; display: block; margin-bottom: 0.15rem; }
+  .hw-stat value { font-weight: 600; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+
+  /* ── TIMELINE ── */
+  .timeline { position: relative; padding-left: 1.8rem; margin: 0.8rem 0 1.4rem; }
+  .timeline::before { content: ''; position: absolute; left: 0.45rem; top: 0.4rem; bottom: 0; width: 2px; background: var(--border); }
+  .tl-item { position: relative; margin-bottom: 1.2rem; }
+  .tl-dot { position: absolute; left: -1.45rem; top: 0.3rem; width: 0.65rem; height: 0.65rem; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); }
+  .tl-phase { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-muted); font-weight: 600; margin-bottom: 0.15rem; }
+  .tl-title { font-weight: 600; font-family: var(--font-display); font-size: 0.9rem; margin-bottom: 0.2rem; }
+  .tl-body  { font-size: 0.845rem; color: var(--fg-muted); line-height: 1.5; }
+
+  /* ── DECISION TABLE ── */
+  .decision-table { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 1.4rem; }
+  .dt-row { display: flex; align-items: flex-start; padding: 0.8rem 1.2rem; gap: 1rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .dt-row:last-child { border-bottom: none; }
+  .dt-q { font-weight: 600; flex: 0 0 210px; font-size: 0.855rem; min-width: 0; }
+  .dt-a { flex: 1; font-size: 0.855rem; color: var(--fg-muted); min-width: 0; }
+  .dt-a strong { color: var(--fg); }
+
+  /* ── BASCULE ── */
+  .bascule {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 0.8rem 0 1.4rem;
+  }
+  .bas-side { padding: 1rem 1.2rem; flex: 1; min-width: 0; }
+  .bas-side.left  { border-right: 1px solid var(--border); }
+  .bas-mid {
+    padding: 1rem 0.8rem;
+    text-align: center;
+    flex: 0 0 auto;
+    background: var(--surface-2);
+    border-right: 1px solid var(--border);
+  }
+  .bas-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); font-weight: 600; margin-bottom: 0.3rem; }
+  .bas-val { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; font-variant-numeric: tabular-nums; color: var(--accent); }
+  .bas-sub { font-size: 0.78rem; color: var(--fg-muted); margin-top: 0.2rem; line-height: 1.4; }
+
+  @media (max-width: 580px) {
+    .pipeline { flex-direction: column; }
+    .pipe-step + .pipe-step { margin-left: 0; margin-top: -1px; border-radius: 0; }
+    .pipe-step:first-child { border-radius: 8px 8px 0 0; }
+    .pipe-step:last-child  { border-radius: 0 0 8px 8px; }
+    .dt-q { flex: 0 0 100%; }
+    .bascule { flex-direction: column; }
+    .bas-side.left { border-right: none; border-bottom: 1px solid var(--border); }
+    .bas-mid { border-right: none; border-bottom: 1px solid var(--border); width: 100%; }
+    .hw-body { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+
+<div class="page-header">
+  <div class="eyebrow">Popy Academy — Briefing technique interne</div>
+  <h1>IA, Modèles & Infrastructure</h1>
+  <p class="subtitle">Options retenues pour la couche IA du site et du robot, avec architecture, coûts et feuille de route.</p>
+  <div class="meta">
+    <span>29 octobre 2025</span>
+    <span>Pierre-Alexis (IA / vision)</span>
+    <span>Priorité : site web → robot</span>
+  </div>
+</div>
+
+<div class="wrapper">
+
+  <nav class="toc">
+    <span class="toc-label">Sections</span>
+    <a href="#principe">Principe</a>
+    <a href="#comment">Comment ça marche</a>
+    <a href="#options-site">Options site</a>
+    <a href="#modeles">Modèles</a>
+    <a href="#rgpd">RGPD</a>
+    <a href="#couts">Coûts</a>
+    <a href="#infra">Infrastructure</a>
+    <a href="#timeline">Feuille de route</a>
+    <a href="#robot">Robot</a>
+    <a href="#decisions">Décisions</a>
+  </nav>
+
+  <!-- 0. PRINCIPE -->
+  <section class="section" id="principe">
+    <div class="section-header">
+      <div class="section-num">0</div>
+      <h2>Le principe qui ne change pas</h2>
+    </div>
+    <div class="callout ok">
+      <strong>Règle d'or POPY — non négociable</strong>
+      L'IA ne mémorise pas les programmes dans ses poids. Elle s'appuie sur un référentiel officiel contrôlé (Éduscol / BO) + les contenus POPY validés. Le LLM reformule uniquement ce qu'on lui fournit — il n'invente jamais le programme.
+    </div>
+    <p>Conséquence directe : <strong>on n'entraîne pas notre propre modèle</strong>. Ce qui compte, c'est la qualité du RAG (récupération dans notre base de connaissances) et du prompt de cadrage. Le LLM est interchangeable — c'est notre référentiel qui est la vraie valeur différenciante de POPY.</p>
+    <div class="callout info">
+      <strong>Phrase jury</strong>
+      "POPY n'entraîne pas son IA sur Internet. Son moteur s'appuie sur un référentiel contrôlé issu des programmes officiels, enrichi de contenus validés. L'IA reformule et accompagne dans les limites de ce référentiel."
+    </div>
+  </section>
+
+  <!-- 1. COMMENT ÇA MARCHE -->
+  <section class="section" id="comment">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h2>Comment ça marche — les blocs</h2>
+    </div>
+
+    <p>L'architecture se décompose en deux couches indépendantes. Le RAG (<em>Retrieval-Augmented Generation</em>) est responsable de la recherche : il convertit la question en vecteur d'embedding et récupère par similarité les chunks les plus pertinents du référentiel officiel. Le LLM reçoit ensuite ces chunks comme contexte et génère une réponse en se limitant strictement à ce qu'il a reçu. La qualité de la réponse dépend donc d'abord de la qualité du référentiel et de la recherche — le modèle lui-même est secondaire et interchangeable.</p>
+
+    <p>Séquence exacte à chaque requête :</p>
+
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="pipe-num">Étape 1</div>
+        <div class="pipe-label">Question enfant</div>
+        <div class="pipe-desc">L'enfant pose sa question via le front React.</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">Étape 2</div>
+        <div class="pipe-label">Recherche RAG</div>
+        <div class="pipe-desc">On cherche dans PostgreSQL+pgvector les 3–5 chunks les plus proches du programme officiel.</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">Étape 3</div>
+        <div class="pipe-label">Construction prompt</div>
+        <div class="pipe-desc">On assemble : profil enfant + chunks trouvés + question. Minimisé, pas de données brutes.</div>
+      </div>
+      <div class="pipe-step highlight">
+        <div class="pipe-num">Étape 4 — choix</div>
+        <div class="pipe-label">Appel LLM</div>
+        <div class="pipe-desc">C'est ici qu'on choisit entre Option A (API Mistral EU) et Option B (self-hosted). Le reste du code ne change pas.</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-num">Étape 5</div>
+        <div class="pipe-label">Réponse sourcée</div>
+        <div class="pipe-desc">L'enfant reçoit la réponse avec les sources citées ("D'après le programme CM1 — Fractions").</div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <strong>Si le RAG ne trouve rien</strong>
+      Le moteur retourne un refus contrôlé ("Je ne trouve pas ça dans le programme") plutôt que de laisser le LLM inventer. C'est une règle de code, pas une convention.
+    </div>
+  </section>
+
+  <!-- 2. OPTIONS SITE -->
+  <section class="section" id="options-site">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <h2>Options retenues pour le site</h2>
+    </div>
+
+    <div class="option-grid">
+      <div class="option-card rec">
+        <div class="option-title">Option A — API cloud EU</div>
+        <div class="option-sub">Court terme · démarrage immédiat</div>
+        <div class="option-desc">On appelle un LLM via API chez un fournisseur européen. Le modèle tourne chez eux, on envoie le prompt et on reçoit la réponse. Zéro GPU à gérer, zéro maintenance modèle.</div>
+        <div class="tag-row">
+          <span class="tag tag-ok">Démarrage en heures</span>
+          <span class="tag tag-ok">Maintenance nulle</span>
+          <span class="tag tag-warn">Coût variable</span>
+          <span class="tag tag-warn">Données chez tiers EU</span>
+        </div>
+      </div>
+
+      <div class="option-card">
+        <div class="option-title">Option B — Self-hosted GPU EU</div>
+        <div class="option-sub">Moyen terme · montée en charge</div>
+        <div class="option-desc">On loue un serveur GPU en Europe (Scaleway, OVH) et on y déploie un modèle open source via Ollama ou vLLM. Le code Fastify appelle notre propre endpoint — techniquement identique à l'option A.</div>
+        <div class="tag-row">
+          <span class="tag tag-ok">Données ne sortent pas</span>
+          <span class="tag tag-ok">Coût fixe prévisible</span>
+          <span class="tag tag-warn">~280 €/mois fixes</span>
+          <span class="tag tag-warn">Maintenance serveur</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <strong>Pourquoi les deux options sont compatibles</strong>
+      Le code Fastify appellera une interface abstraite <span class="mono">LlmClient</span>. Derrière, une variable d'environnement pointe soit vers <span class="mono">api.mistral.ai</span> soit vers <span class="mono">ton-serveur-gpu.popy.fr</span>. On peut basculer sans réécrire le moindre code.
+    </div>
+
+    <div class="callout red">
+      <strong>Ce qu'on ne fait pas</strong>
+      On n'entraîne pas de modèle from scratch (millions d'exemples, budget MLOps hors portée) et on ne fine-tune pas maintenant (à réévaluer après 6 semaines de test si le prompt seul ne suffit pas). OpenAI est écarté en priorité car les données transiteraient hors EU — une analyse de transfert et un DPA spécifique seraient nécessaires (Yacine).
+    </div>
+  </section>
+
+  <!-- 3. MODÈLES -->
+  <section class="section" id="modeles">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h2>Quels modèles utiliser</h2>
+    </div>
+
+    <h3>Pour l'Option A — fournisseurs API EU</h3>
+    <div class="model-grid">
+      <div class="model-card rec">
+        <div class="model-name">Mistral Small</div>
+        <div class="model-meta">Mistral AI · France · API</div>
+        <div class="model-desc">Choix naturel. Hébergement France, DPA simple, très bon français, parfait pour reformuler du contenu pédagogique structuré. Rapport qualité/prix imbattable pour ce cas d'usage.</div>
+        <div class="tag-row"><span class="tag tag-ok">Recommandé</span><span class="tag tag-neutral">0,20 €/1M tokens</span></div>
+      </div>
+      <div class="model-card">
+        <div class="model-name">Scaleway Inference</div>
+        <div class="model-meta">Scaleway · France · API</div>
+        <div class="model-desc">Scaleway héberge des modèles open source (LLaMA, Mistral) sur infra EU avec une API compatible OpenAI. Permet de tester plusieurs modèles sans monter de GPU. Souveraineté 100% française.</div>
+        <div class="tag-row"><span class="tag tag-neutral">API compatible OpenAI</span><span class="tag tag-ok">100% FR</span></div>
+      </div>
+      <div class="model-card">
+        <div class="model-name">Mistral Large</div>
+        <div class="model-meta">Mistral AI · France · API</div>
+        <div class="model-desc">Version plus puissante, utile si Small montre des limites sur des questions complexes. Même hébergement EU. À utiliser si on constate que Small ne tient pas suffisamment le cadre pédagogique.</div>
+        <div class="tag-row"><span class="tag tag-warn">10× plus cher que Small</span></div>
+      </div>
+    </div>
+
+    <h3>Pour l'Option B — modèles self-hosted (GPU EU)</h3>
+    <p>Ces modèles sont open source, libres à déployer. On les fait tourner avec <strong>Ollama</strong> (simple) ou <strong>vLLM</strong> (plus performant à forte charge) sur le serveur GPU. Critères POPY : qualité du français, instruction-following strict, refus des hallucinations hors contexte.</p>
+    <div class="model-grid">
+      <div class="model-card rec">
+        <div class="model-name">Mistral 7B Instruct</div>
+        <div class="model-meta">Open source · ~4 GB VRAM (Q4)</div>
+        <div class="model-desc">Valeur sûre. Excellent français, très bon pour rester dans le contexte fourni. Tourne confortablement sur A10 GPU. C'est le choix de référence pour démarrer.</div>
+        <div class="tag-row"><span class="tag tag-ok">Recommandé</span><span class="tag tag-neutral">20-40 tok/s sur A10</span></div>
+      </div>
+      <div class="model-card rec">
+        <div class="model-name">LLaMA 3.1 8B Instruct</div>
+        <div class="model-meta">Meta · Open source · ~5 GB VRAM (Q4)</div>
+        <div class="model-desc">Légèrement plus capable que Mistral 7B sur la compréhension de contexte. Même gabarit, même coût. Les deux sont interchangeables — choisir selon les tests.</div>
+        <div class="tag-row"><span class="tag tag-ok">Recommandé</span><span class="tag tag-neutral">18-35 tok/s sur A10</span></div>
+      </div>
+      <div class="model-card">
+        <div class="model-name">Phi-3.5 mini 3.8B</div>
+        <div class="model-meta">Microsoft · Open source · ~2.5 GB VRAM</div>
+        <div class="model-desc">Surprenant pour sa taille. Excellent instruction-following, tourne vite. Qualité en français légèrement en dessous des 7-8B. Idéal si on veut réduire les coûts GPU ou pour le robot.</div>
+        <div class="tag-row"><span class="tag tag-neutral">GPU modeste suffisant</span></div>
+      </div>
+      <div class="model-card">
+        <div class="model-name">Mixtral 8x7B</div>
+        <div class="model-meta">Mistral AI · Open source · ~26 GB VRAM</div>
+        <div class="model-desc">Nettement au-dessus en qualité. Architecture mixture-of-experts : se comporte comme un 12B tout en étant plus efficace. Mais nécessite un GPU A10 dédié avec beaucoup de VRAM. À envisager si les 7B montrent des limites.</div>
+        <div class="tag-row"><span class="tag tag-warn">GPU A10 24GB minimum</span></div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <strong>Ce qui compte vraiment pour évaluer un modèle sur POPY</strong>
+      Les benchmarks généraux sont trompeurs pour notre usage. Ce qu'on teste en pratique : (1) le modèle reste-t-il dans les chunks fournis sans inventer ? (2) son français est-il naturel et adapté à l'âge ? (3) dit-il "je ne sais pas" quand le RAG ne trouve rien ?
+    </div>
+  </section>
+
+  <!-- 4. RGPD -->
+  <section class="section" id="rgpd">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h2>Contraintes RGPD sur la couche IA</h2>
+    </div>
+
+    <p>POPY traite des données d'enfants. Le plan RGPD de l'équipe (Yacine) pose des règles directes sur le choix du LLM. Ce n'est pas qu'une préférence — c'est une contrainte projet figée.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Option LLM</th><th>Statut RGPD</th><th>Ce que Yacine doit faire</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Mistral API (EU)</strong></td>
+            <td><span class="tag tag-ok">Chemin court</span></td>
+            <td>Signer le DPA standard Mistral. Clause de non-entraînement sur nos données. Simple.</td>
+          </tr>
+          <tr>
+            <td><strong>Self-hosted GPU EU</strong></td>
+            <td><span class="tag tag-ok">Aucun sous-traitant IA</span></td>
+            <td>Rien sur le LLM lui-même — les données ne sortent pas. DPA uniquement pour l'hébergeur.</td>
+          </tr>
+          <tr>
+            <td><strong>Scaleway Inference</strong></td>
+            <td><span class="tag tag-ok">Faisable</span></td>
+            <td>DPA Scaleway (hébergeur UE). Vérifier clause modèle.</td>
+          </tr>
+          <tr>
+            <td><strong>OpenAI (US)</strong></td>
+            <td><span class="tag tag-warn">Complexe</span></td>
+            <td>Analyse de transfert hors UE + fiche spécifique. Possible mais couche juridique lourde.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Deux règles techniques figées, quoi qu'on choisisse :</p>
+    <ul style="font-size:0.9rem; padding-left:1.2rem; margin:0 0 0.8rem; line-height:1.7;">
+      <li>Le prompt envoyé au LLM doit être <strong>minimisé</strong> — pas de données personnelles brutes de l'enfant dans le contexte, uniquement le niveau scolaire et les chunks RAG.</li>
+      <li><strong>Pas de log des prompts</strong> côté serveur LLM sur le long terme — si on loggue pour debug, TTL court et accès restreint (Fabio).</li>
+    </ul>
+  </section>
+
+  <!-- 5. COÛTS -->
+  <section class="section" id="couts">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <h2>Coûts comparés</h2>
+    </div>
+
+    <h3>Coût d'une conversation</h3>
+    <p>Une conversation POPY type : question + chunks RAG + profil = ~1 500 tokens en entrée, réponse ~300 tokens.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Modèle</th><th>Input / 1M tok</th><th>Output / 1M tok</th><th>Coût / conversation</th></tr></thead>
+        <tbody>
+          <tr><td>Mistral Small</td><td class="mono">0,20 €</td><td class="mono">0,60 €</td><td class="mono">~0,0005 €</td></tr>
+          <tr><td>Mistral Large</td><td class="mono">2,00 €</td><td class="mono">6,00 €</td><td class="mono">~0,005 €</td></tr>
+          <tr><td>Self-hosted 7–8B</td><td colspan="2" style="color:var(--fg-muted); font-size:0.82rem;">Coût fixe GPU indépendant du volume</td><td class="mono">~0 € variable</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Point de bascule entre les deux options</h3>
+    <div class="bascule">
+      <div class="bas-side left">
+        <div class="bas-label">Option A — Mistral API</div>
+        <div class="bas-val">~40 €/mois</div>
+        <div class="bas-sub">à 500 utilisateurs actifs · 5 questions/jour<br>Monte linéairement avec le volume</div>
+      </div>
+      <div class="bas-mid">
+        <div class="bas-label">Bascule</div>
+        <div class="bas-val">≈800</div>
+        <div class="bas-sub">utilisateurs<br>actifs/jour</div>
+      </div>
+      <div class="bas-side">
+        <div class="bas-label">Option B — Self-hosted GPU A10</div>
+        <div class="bas-val">~280 €/mois</div>
+        <div class="bas-sub">Coût fixe · 0 à ∞ requêtes<br>Rentable à fort volume</div>
+      </div>
+    </div>
+
+    <h3>Coût mensuel total (infra + LLM) selon le volume</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Utilisateurs actifs/mois</th><th>Option A (Mistral API)</th><th>Option B (Self-hosted)</th></tr></thead>
+        <tbody>
+          <tr><td>50 (beta)</td><td>~20 €</td><td>~295 €</td></tr>
+          <tr><td>500 (lancement)</td><td>~55 €</td><td>~310 €</td></tr>
+          <tr><td>2 000</td><td>~195 €</td><td>~330 €</td></tr>
+          <tr><td>10 000</td><td>~795 €</td><td>~370 €</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:0.82rem; color:var(--fg-muted);">Infra serveur incluse (~15-40€/mois Hetzner/Scaleway). Option B inclut le GPU (~250€/mois A10 EU loué).</p>
+  </section>
+
+  <!-- 6. INFRA -->
+  <section class="section" id="infra">
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <h2>Infrastructure site</h2>
+    </div>
+
+    <div class="callout warn">
+      <strong>Contrainte figée — hébergement EU obligatoire</strong>
+      Le plan RGPD et les specs techniques l'imposent. AWS US, GCP US, Azure US sont exclus. Hetzner (Allemagne/Finlande) est acceptable avec documentation du transfert.
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Couche</th><th>Choix recommandé</th><th>Alternative</th><th>Specs démarrage</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Backend API</td>
+            <td>VPS Scaleway ou OVH</td>
+            <td>Hetzner CX31</td>
+            <td>2 vCPU · 8 GB RAM · Docker Compose + Caddy</td>
+          </tr>
+          <tr>
+            <td>Base de données</td>
+            <td>PostgreSQL + pgvector</td>
+            <td>Supabase EU (free → pro)</td>
+            <td>pgvector activé, extension embeddings</td>
+          </tr>
+          <tr>
+            <td>Frontend (PWA)</td>
+            <td>Vercel ou Cloudflare Pages</td>
+            <td>Nginx sur VPS</td>
+            <td>Build React/Vite, cache statique</td>
+          </tr>
+          <tr>
+            <td>GPU (option B only)</td>
+            <td>Scaleway GPU A10 EU</td>
+            <td>OVH AI Endpoints</td>
+            <td>24 GB VRAM · Ollama · ~250 €/mois</td>
+          </tr>
+          <tr>
+            <td>Reverse proxy</td>
+            <td>Caddy (TLS auto)</td>
+            <td>Traefik, nginx + certbot</td>
+            <td>HTTPS auto, HSTS, headers sécu</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:0.82rem; color:var(--fg-muted);">Pas de GPU nécessaire en Option A — le serveur standard suffit. Kubernetes écarté jusqu'à juin 2027 (over-engineering confirmé par le plan Cloud).</p>
+  </section>
+
+  <!-- 7. TIMELINE -->
+  <section class="section" id="timeline">
+    <div class="section-header">
+      <div class="section-num">7</div>
+      <h2>Feuille de route IA site (phases)</h2>
+    </div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-phase">Phase P0 — 1-2 semaines</div>
+        <div class="tl-title">Contrats TypeScript, schéma Prisma référentiel</div>
+        <div class="tl-body">Interfaces <span class="mono">PedagogicalQuery</span>, <span class="mono">RetrievalHit</span>, <span class="mono">GroundedAnswer</span>. Tables <span class="mono">curriculum_nodes</span>, <span class="mono">official_competencies</span>. Zéro LLM encore.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-phase">Phase P1 — semaines 3-4</div>
+        <div class="tl-title">Référentiel officiel interrogeable</div>
+        <div class="tl-body">Import échantillon CP–CM2 (maths + français). API <span class="mono">GET /curriculum/search</span>. Index pgvector. Test : "fractions CM1" retourne des nœuds sourcés.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-phase">Phase P2 — semaines 5-6</div>
+        <div class="tl-title">Contenus POPY liés aux compétences officielles</div>
+        <div class="tl-body">Relier <span class="mono">learning_contents</span> existants aux <span class="mono">official_competency_id</span>. Variantes : facile / standard / audio.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-phase">Phase P4 — semaines 7-8</div>
+        <div class="tl-title">Moteur RAG fonctionnel, sans LLM</div>
+        <div class="tl-body">Service <span class="mono">retrieveOfficial()</span> + <span class="mono">buildGroundedPrompt()</span>. Endpoint <span class="mono">POST /pedagogy/ask</span> en mode stub (réponse template). Tests E2E refus hors référentiel.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-phase">Phase P5 — semaines 9-10</div>
+        <div class="tl-title">Branchement LLM (Option A d'abord)</div>
+        <div class="tl-body">Interface <span class="mono">LlmClient</span> abstraite. Mistral API EU derrière <span class="mono">PEDAGOGY_LLM_ENABLED=true</span>. System prompt verrouillé. Migration Option B sans réécriture.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-phase">Phase P6 — semaines 11-12</div>
+        <div class="tl-title">Intégration frontend + démo jury</div>
+        <div class="tl-body">"Parler à Popy" branché sur <span class="mono">/pedagogy/ask</span>. Sources affichées dans l'UI. Fallback hors ligne (IndexedDB).</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. ROBOT -->
+  <section class="section" id="robot">
+    <div class="section-header">
+      <div class="section-num">8</div>
+      <h2>Robot — hardware et IA embarquée</h2>
+    </div>
+
+    <div class="callout info">
+      <strong>Contexte</strong>
+      Le robot vient après le site. Architecture confirmée : 100% offline, modèle LLM réel embarqué dans le robot. Même logique RAG que le site, mais tout tourne en local — zéro appel réseau pour l'IA.
+    </div>
+
+    <h3>Hardware recommandé</h3>
+    <div class="hw-card">
+      <div class="hw-head">
+        <div class="hw-model">NVIDIA Jetson AGX Orin 32GB</div>
+        <div class="hw-price">~650 € (module seul)</div>
+      </div>
+      <div class="hw-body">
+        <div class="hw-stat"><label>GPU</label><value>2 048 cœurs CUDA (Ampere)</value></div>
+        <div class="hw-stat"><label>RAM unifiée</label><value>32 GB LPDDR5</value></div>
+        <div class="hw-stat"><label>Modèle cible</label><value>Mistral 7B Q4 ou LLaMA 3.1 8B Q4</value></div>
+        <div class="hw-stat"><label>Débit IA</label><value>8–14 tokens/seconde</value></div>
+        <div class="hw-stat"><label>Latence perçue</label><value>~400–600 ms (TTS streaming)</value></div>
+        <div class="hw-stat"><label>Conso</label><value>15–60 W (configurable)</value></div>
+      </div>
+    </div>
+
+    <h3>Modèles pour le robot</h3>
+    <div class="model-grid">
+      <div class="model-card rec">
+        <div class="model-name">Mistral 7B Q4 / LLaMA 3.1 8B Q4</div>
+        <div class="model-meta">~4–5 GB VRAM · qualité standard</div>
+        <div class="model-desc">Les deux valent le coup sur Jetson AGX Orin 64GB. Tiennent confortablement, débit fluide (8-14 tok/s), français excellent. Choix de départ.</div>
+        <div class="tag-row"><span class="tag tag-ok">Recommandé</span></div>
+      </div>
+      <div class="model-card">
+        <div class="model-name">Phi-3 medium 14B Q4</div>
+        <div class="model-meta">~8–9 GB VRAM · qualité supérieure</div>
+        <div class="model-desc">Qualité nettement meilleure, toujours dans les 64GB de RAM. Légèrement plus lent (~6-10 tok/s). À envisager si les tests avec 7B montrent des hésitations.</div>
+        <div class="tag-row"><span class="tag tag-neutral">Upgrade possible</span></div>
+      </div>
+      <div class="model-card">
+        <div class="model-name">Phi-3.5 mini 3.8B Q4</div>
+        <div class="model-meta">~2.5 GB VRAM · léger et rapide</div>
+        <div class="model-desc">Pour un robot d'entrée de gamme avec Jetson Orin Nano. Qualité acceptable mais en dessous des 7B — à éviter si on ne veut pas de réponses hésitantes avec des enfants.</div>
+        <div class="tag-row"><span class="tag tag-warn">Compromis qualité</span></div>
+      </div>
+    </div>
+
+    <h3>Stack logicielle robot</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Fonction</th><th>Outil</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td>Reconnaissance vocale (STT)</td><td>Vosk</td><td>100% offline, modèle français disponible</td></tr>
+          <tr><td>Inférence LLM</td><td>Ollama ou llama.cpp</td><td>Même outil que le self-hosted serveur GPU</td></tr>
+          <tr><td>Synthèse vocale (TTS)</td><td>Piper TTS</td><td>Offline, voix française naturelle</td></tr>
+          <tr><td>Vision / attention</td><td>OpenCV + TFLite</td><td>Détection locale, jamais envoyée au cloud brut</td></tr>
+          <tr><td>Base de connaissances</td><td>SQLite + embeddings locaux</td><td>Même référentiel que le site, embarqué</td></tr>
+          <tr><td>Sync cloud</td><td>API existante</td><td>Données agrégées uniquement — jamais de données brutes</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Estimation coût robot complet</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Composant</th><th>Estimation</th></tr></thead>
+        <tbody>
+          <tr><td>Module Jetson AGX Orin 64GB</td><td>~900 €</td></tr>
+          <tr><td>Carrier board (PCB dédié)</td><td>200–400 €</td></tr>
+          <tr><td>Micro + caméra + haut-parleur</td><td>80–150 €</td></tr>
+          <tr><td>Coque / mécanique / batterie</td><td>300–600 €</td></tr>
+          <tr><td>Assemblage + logiciel embarqué</td><td>300–500 €</td></tr>
+          <tr><td><strong>Total estimé (prototype unitaire)</strong></td><td><strong>1 800–2 200 €</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Options hardware comparées</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Module</th><th>CUDA cores</th><th>RAM</th><th>Prix module</th><th>Robot complet</th><th>Modèle possible</th><th>Débit</th><th>Impact qualité</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>AGX Orin 32GB</strong> ★</td>
+            <td class="mono">2 048</td>
+            <td class="mono">32 GB</td>
+            <td>~650 €</td>
+            <td>~1 500–1 800 €</td>
+            <td>7B–8B Q4</td>
+            <td class="mono">8–14 tok/s</td>
+            <td><span class="tag tag-ok">Recommandé pour 7B</span></td>
+          </tr>
+          <tr>
+            <td><strong>AGX Orin 64GB</strong></td>
+            <td class="mono">2 048</td>
+            <td class="mono">64 GB</td>
+            <td>~900 €</td>
+            <td>~1 800–2 200 €</td>
+            <td>7B–14B Q4</td>
+            <td class="mono">8–14 tok/s</td>
+            <td><span class="tag tag-neutral">Upgrade si on monte en 14B</span></td>
+          </tr>
+          <tr>
+            <td><strong>Orin NX 16GB</strong></td>
+            <td class="mono">1 024</td>
+            <td class="mono">16 GB</td>
+            <td>~420 €</td>
+            <td>~1 100–1 400 €</td>
+            <td>7B Q4 (serré)</td>
+            <td class="mono">4–6 tok/s</td>
+            <td><span class="tag tag-warn">Hésitations perceptibles</span></td>
+          </tr>
+          <tr>
+            <td>Orin Nano 8GB</td>
+            <td class="mono">1 024</td>
+            <td class="mono">8 GB</td>
+            <td>~200 €</td>
+            <td>~800–1 100 €</td>
+            <td>3–4B uniquement</td>
+            <td class="mono">3–4 tok/s</td>
+            <td><span class="tag tag-bad">Qualité insuffisante</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout ok">
+      <strong>AGX Orin 32GB — recommandé pour notre cas d'usage</strong>
+      Même puce que le 64GB (2 048 cœurs CUDA, puissance de calcul identique), moitié moins de RAM. Pour Mistral 7B Q4 ou LLaMA 3.1 8B Q4 (~4–5 GB VRAM), les performances sont strictement identiques. La 64GB n'apporte rien de plus tant qu'on reste sur du 7B — la seule raison d'y passer serait de vouloir faire tourner un modèle 14B à terme.
+    </div>
+
+    <div class="callout warn">
+      <strong>Orin NX 16GB — dégradation perceptible</strong>
+      La puce passe à 1 024 cœurs CUDA (moitié moins). Le débit tombe à 4–6 tokens/seconde : les réponses arriveront par à-coups plutôt qu'en continu, ce qui se sent clairement dans une conversation avec un enfant. Le modèle 7B tient en RAM mais avec peu de marge pour les autres processus (STT, TTS, vision). Option envisageable pour un prototype de démonstration — pas pour un produit final.
+    </div>
+  </section>
+
+  <!-- 9. DÉCISIONS -->
+  <section class="section" id="decisions">
+    <div class="section-header">
+      <div class="section-num">9</div>
+      <h2>Résumé des décisions</h2>
+    </div>
+
+    <div class="decision-table">
+      <div class="dt-row">
+        <div class="dt-q">Entraîner notre propre modèle ?</div>
+        <div class="dt-a"><strong>Non.</strong> Hors portée et inutile avec l'architecture RAG. Notre valeur est dans le référentiel, pas dans le modèle.</div>
+      </div>
+      <div class="dt-row">
+        <div class="dt-q">Fine-tuner un modèle existant ?</div>
+        <div class="dt-a"><strong>Pas maintenant.</strong> À réévaluer après 6 semaines de test si le prompt ne suffit pas à tenir le registre pédagogique.</div>
+      </div>
+      <div class="dt-row">
+        <div class="dt-q">Option LLM site — court terme</div>
+        <div class="dt-a"><strong>Option A : Mistral API EU (Mistral Small).</strong> Démarrage immédiat, ~40€/mois au lancement, RGPD simple.</div>
+      </div>
+      <div class="dt-row">
+        <div class="dt-q">Option LLM site — montée en charge</div>
+        <div class="dt-a"><strong>Option B : Self-hosted GPU EU (Scaleway/OVH).</strong> ~280€/mois fixes. Coût stable, données ne sortent pas. Bascule à ~800 utilisateurs actifs/jour.</div>
+      </div>
+      <div class="dt-row">
+        <div class="dt-q">Modèle self-hosted recommandé</div>
+        <div class="dt-a"><strong>Mistral 7B Instruct ou LLaMA 3.1 8B Instruct</strong> — les deux sont équivalents, tester les deux et retenir le meilleur sur le français pédagogique.</div>
+      </div>
+      <div class="dt-row">
+        <div class="dt-q">Hébergement</div>
+        <div class="dt-a"><strong>EU obligatoire.</strong> Scaleway ou OVH en premier choix. VPS + Docker Compose + Caddy. Pas de Kubernetes avant juin 2027.</div>
+      </div>
+      <div class="dt-row">
+        <div class="dt-q">Robot — hardware</div>
+        <div class="dt-a"><strong>Jetson AGX Orin 32GB</strong> (~650€ module, ~1 500–1 800€ prototype complet). Performances identiques au 64GB sur les modèles 7B. La 64GB n'est pertinente qu'en cas de montée vers un modèle 14B.</div>
+      </div>
+      <div class="dt-row">
+        <div class="dt-q">Robot — modèle IA</div>
+        <div class="dt-a"><strong>Mistral 7B Q4 ou LLaMA 3.1 8B Q4</strong> pour commencer. Upgrade possible vers Phi-3 medium 14B Q4 si la qualité doit monter.</div>
+      </div>
+    </div>
+
+    <div class="callout ok">
+      <strong>Ce qu'on peut annoncer avec certitude</strong>
+      L'architecture POPY (RAG + LLM reformulateur + référentiel officiel) est solide, faisable avec la stack en place, conforme RGPD avec Mistral EU, et scalable à coût raisonnable. La production du site peut démarrer maintenant — le robot suit la même architecture, plus tard.
+    </div>
+  </section>
+
+</div>

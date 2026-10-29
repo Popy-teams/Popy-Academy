@@ -1,0 +1,454 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://popyacademy/schemas/behavior_event.json",
+  "title": "BehaviorEvent",
+  "description": "Événement comportement émis par l'application Popy Academy chaque fois qu'un enfant interagit avec une activité. Ce schéma est le contrat entre le front-end (émetteur) et le pipeline de données IA (récepteur). Toute modification nécessite une ADR.",
+  "type": "object",
+  "required": [
+    "event_id",
+    "ts",
+    "schema_version",
+    "device",
+    "session_id",
+    "child_id_hash",
+    "type",
+    "payload"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Identifiant unique de l'événement (UUID v4 généré côté client). Permet la déduplication en cas de retry réseau."
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Horodatage ISO-8601 UTC de l'événement (ex: 2026-10-22T10:30:00.000Z). Généré côté client au moment de l'action."
+    },
+    "schema_version": {
+      "type": "string",
+      "enum": ["1.0", "1.1"],
+      "description": "Version du schéma. Permet d'évoluer le format sans casser les pipelines existants."
+    },
+    "device": {
+      "type": "string",
+      "enum": ["web", "robot"],
+      "description": "Canal d'émission : 'web' = interface navigateur (PC, tablette via PWA), 'robot' = interface physique Popy."
+    },
+    "session_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Identifiant de la session de travail (UUID v4 généré à la connexion). Regroupe tous les événements d'une même séance. Réinitialisé à chaque reconnexion."
+    },
+    "child_id_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Identifiant pseudonymisé de l'enfant : HMAC-SHA256(child_id, clé_serveur), encodé en hexadécimal minuscule (64 caractères). Jamais le vrai child_id en clair. La clé HMAC est détenue uniquement par le backend."
+    },
+    "sync_policy": {
+      "type": "string",
+      "enum": ["stream", "local_buffer", "local_only"],
+      "description": "Politique de transport de l'événement. 'stream' = envoyé directement à l'API cloud (typique: device:web). 'local_buffer' = stocké localement, seule la version agrégée part au cloud (typique: device:robot). 'local_only' = ne quitte jamais l'appareil (consent refusé, debug). Optionnel : si absent, le pipeline infère depuis le champ 'device'."
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "session_start",
+        "session_end",
+        "activity_start",
+        "activity_success",
+        "activity_fail",
+        "hint_used",
+        "abandon",
+        "pause",
+        "resume",
+        "vision_signal"
+      ],
+      "description": "Type d'événement. Détermine la structure du champ 'payload'. Voir behavior_event_dict.md pour le dictionnaire complet."
+    },
+    "payload": {
+      "type": "object",
+      "description": "Données spécifiques au type d'événement. Structure validée par les blocs if/then ci-dessous."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "type": { "const": "session_start" } },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "child_level": {
+                "type": "string",
+                "enum": ["CP", "CE1", "CE2", "CM1", "CM2"],
+                "description": "Niveau scolaire de l'enfant au moment de la session (optionnel — extrait du profil)"
+              },
+              "subscription_type": {
+                "type": "string",
+                "enum": ["ordinateur", "famille", "ecole"],
+                "description": "Type d'abonnement actif (optionnel)"
+              },
+              "is_offline": {
+                "type": "boolean",
+                "description": "true si l'app démarre en mode hors-ligne (optionnel)"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "type": { "const": "session_end" } },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": ["duration_ms"],
+            "properties": {
+              "duration_ms": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Durée totale de la session en millisecondes (ts_end - ts_start)"
+              },
+              "activities_completed": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Nombre d'activités complétées avec succès pendant la session (optionnel)"
+              },
+              "activities_attempted": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Nombre total d'activités démarrées pendant la session (optionnel)"
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "user_logout",
+                  "inactivity_timeout",
+                  "app_close",
+                  "crash",
+                  "unknown"
+                ],
+                "description": "Cause de fin de session (optionnel)"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "type": { "const": "activity_start" } },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": ["content_id"],
+            "properties": {
+              "content_id": {
+                "type": "string",
+                "description": "Identifiant du contenu POPY démarré (ex: 'content_frac_visuel_01')"
+              },
+              "difficulty": {
+                "type": "string",
+                "enum": ["easy", "standard", "remediation"],
+                "description": "Niveau de difficulté proposé à l'enfant pour cette activité"
+              },
+              "activity_type": {
+                "type": "string",
+                "enum": ["exercise", "quiz", "game", "reading"],
+                "description": "Modalité principale de l'activité"
+              },
+              "competency_id": {
+                "type": "string",
+                "description": "Identifiant de la compétence travaillée (ex: 'comp_cm1_maths_frac_01')"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "type": { "const": "activity_success" } },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": ["content_id", "duration_ms", "attempt"],
+            "properties": {
+              "content_id": {
+                "type": "string",
+                "description": "Identifiant du contenu POPY complété avec succès"
+              },
+              "duration_ms": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Durée totale de l'activité en millisecondes (depuis activity_start)"
+              },
+              "attempt": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Numéro de la tentative ayant abouti au succès (1 = réussi du premier coup)"
+              },
+              "score_pct": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Score obtenu en pourcentage (optionnel — uniquement si l'activité est scorée)"
+              },
+              "hints_used_count": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Nombre total d'indices demandés pendant cette activité (optionnel)"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "type": { "const": "activity_fail" } },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": ["content_id", "duration_ms", "attempt"],
+            "properties": {
+              "content_id": {
+                "type": "string",
+                "description": "Identifiant du contenu POPY échoué"
+              },
+              "duration_ms": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Durée de cette tentative en millisecondes"
+              },
+              "attempt": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Numéro de la tentative échouée"
+              },
+              "error_category": {
+                "type": "string",
+                "enum": [
+                  "wrong_answer",
+                  "timeout",
+                  "incomplete",
+                  "unknown"
+                ],
+                "description": "Catégorie d'erreur si identifiable par l'app (optionnel)"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "type": { "const": "hint_used" } },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": ["content_id", "hint_index", "attempt"],
+            "properties": {
+              "content_id": {
+                "type": "string",
+                "description": "Identifiant du contenu en cours lors de la demande d'indice"
+              },
+              "hint_index": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Rang de l'indice demandé (1 = premier indice, 2 = deuxième, …). Utile pour mesurer le degré de difficulté."
+              },
+              "attempt": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Numéro de la tentative en cours lors de la demande d'indice"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "type": { "const": "abandon" } },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": ["content_id", "duration_ms", "attempt"],
+            "properties": {
+              "content_id": {
+                "type": "string",
+                "description": "Identifiant du contenu abandonné"
+              },
+              "duration_ms": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Durée passée sur l'activité avant abandon, en millisecondes"
+              },
+              "attempt": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Numéro de la tentative abandonnée"
+              },
+              "completion_pct": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Pourcentage de progression de l'activité atteint avant abandon (optionnel — dépend de la granularité du suivi front)"
+              },
+              "trigger": {
+                "type": "string",
+                "enum": [
+                  "user_navigation",
+                  "inactivity_timeout",
+                  "session_end",
+                  "unknown"
+                ],
+                "description": "Ce qui a déclenché l'abandon (optionnel)"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "type": { "const": "pause" } },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "content_id": {
+                "type": "string",
+                "description": "Identifiant du contenu en cours au moment de la pause (optionnel si hors activité)"
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "user_action",
+                  "inactivity_timeout",
+                  "system"
+                ],
+                "description": "Origine de la pause : 'user_action' = enfant a cliqué pause, 'inactivity_timeout' = détecté automatiquement, 'system' = interruption technique"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "type": { "const": "resume" } },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": ["pause_duration_ms"],
+            "properties": {
+              "content_id": {
+                "type": "string",
+                "description": "Identifiant du contenu repris (optionnel — identique au content_id du 'pause' associé)"
+              },
+              "pause_duration_ms": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Durée de la pause en millisecondes (ts_resume - ts_pause)"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "type": { "const": "vision_signal" } },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "device": {
+            "const": "robot",
+            "description": "vision_signal ne peut être émis que par le robot (device: robot obligatoire)"
+          },
+          "payload": {
+            "type": "object",
+            "required": ["attention_state"],
+            "properties": {
+              "attention_state": {
+                "type": "string",
+                "enum": ["focused", "distracted", "absent", "unknown"],
+                "description": "État attentionnel détecté par l'analyse posturale et du regard. RGPD : indicateur comportemental uniquement — pas de reconnaissance faciale ni d'inférence d'émotion au sens biométrique."
+              },
+              "engagement_level": {
+                "type": "string",
+                "enum": ["high", "medium", "low", "unknown"],
+                "description": "Niveau d'engagement estimé (optionnel)"
+              },
+              "fatigue_detected": {
+                "type": "boolean",
+                "description": "Indicateur de fatigue comportementale détecté (optionnel)"
+              },
+              "context": {
+                "type": "string",
+                "enum": ["activity", "between_activities"],
+                "description": "Moment dans la session au moment de la capture (optionnel)"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false,
+
+  "$defs": {
+    "_notes": {
+      "description": "Notes pour les développeurs",
+      "privacy": "Ne jamais inclure : nom réel, email, école, diagnostic médical, carnet privé, contenu de message famille. Le child_id_hash est la seule référence à l'enfant autorisée.",
+      "offline": "Si l'app est offline, les événements sont mis en file locale (IndexedDB) et envoyés en batch au retour réseau. Le champ 'ts' doit refléter l'heure RÉELLE de l'action, pas l'heure d'envoi.",
+      "deduplication": "Le backend doit ignorer silencieusement les event_id déjà reçus (idempotence).",
+      "evolution": "Pour ajouter un nouveau type d'événement : incrémenter schema_version + ADR + mise à jour de behavior_event_dict.md.",
+      "child_id_hash_key": "La clé HMAC est rotée tous les 90 jours. Les anciens hashs ne sont pas retrouvés après rotation (privacy by design). Coordonner avec Yacine (RGPD)."
+    }
+  }
+}
