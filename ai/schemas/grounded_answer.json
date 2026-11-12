@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://popyacademy/schemas/grounded_answer.json",
+  "title": "GroundedAnswer",
+  "description": "Contrat de réponse retourné par le moteur pédagogique POPY. Garantit la traçabilité et l'ancrage institutionnel.",
+  "type": "object",
+  "required": [
+    "answer_text",
+    "grounded",
+    "intent",
+    "sources",
+    "content_ids",
+    "safety",
+    "model"
+  ],
+  "properties": {
+    "answer_text": {
+      "type": "string",
+      "description": "Texte de la réponse formulé pour l'enfant ou l'éducateur."
+    },
+    "grounded": {
+      "type": "boolean",
+      "description": "True si la réponse repose strictement sur des sources officielles vérifiées ; False si refus ou fallback."
+    },
+    "intent": {
+      "type": "string",
+      "enum": [
+        "programme",
+        "exercice",
+        "aide",
+        "remediation",
+        "bilan",
+        "chitchat",
+        "refusal",
+        "autre"
+      ],
+      "description": "Intention traitée par l'orchestrateur."
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["chunk_id", "source_ref"],
+        "properties": {
+          "chunk_id": {
+            "type": "string",
+            "description": "Identifiant du chunk officiel extrait de la base."
+          },
+          "source_ref": {
+            "type": "string",
+            "description": "Référence BO / Éduscol affichable sous la réponse."
+          },
+          "score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Score de pertinence du retrieval (BM25 ou similarité cosinus)."
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "Liste des sources officielles citées."
+    },
+    "content_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Identifiants des contenus ou exercices POPY proposés en complément."
+    },
+    "safety": {
+      "type": "object",
+      "required": ["refused", "reason"],
+      "properties": {
+        "refused": {
+          "type": "boolean",
+          "description": "True si la requête a déclenché un refus de sécurité ou d'absence de source officielle."
+        },
+        "reason": {
+          "type": ["string", "null"],
+          "enum": [
+            null,
+            "out_of_curriculum",
+            "no_official_source",
+            "pii_detected",
+            "safety_policy_violation",
+            "inappropriate_age",
+            "system_prompt_override_attempt"
+          ],
+          "description": "Code d'explication standardisé si refused est true."
+        }
+      },
+      "additionalProperties": false
+    },
+    "model": {
+      "type": "object",
+      "required": ["llm", "prompt_version"],
+      "properties": {
+        "llm": {
+          "type": "string",
+          "description": "Identifiant du modèle utilisé (ex: 'none' pour le stub RAG, 'mistral-small-instruct', etc.)."
+        },
+        "prompt_version": {
+          "type": "string",
+          "description": "Version du gabarit de prompt utilisé (ex: 'pedagogy_v1')."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
+

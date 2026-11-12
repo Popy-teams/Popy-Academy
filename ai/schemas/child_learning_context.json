@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://popyacademy/schemas/child_learning_context.json",
+  "title": "ChildLearningContext",
+  "description": "Contexte d'apprentissage minimisé pour injection dans le prompt du moteur RAG. Conforme RGPD : strictement aucune PII, aucun nom réel, aucune donnée de santé ou diagnostic médical.",
+  "type": "object",
+  "required": [
+    "child_alias",
+    "level"
+  ],
+  "properties": {
+    "child_alias": {
+      "type": "string",
+      "pattern": "^enfant_[a-z0-9_]+$",
+      "description": "Pseudonyme anonyme de l'enfant utilisé dans le prompt (ex: enfant_12a)."
+    },
+    "level": {
+      "type": "string",
+      "enum": ["CP", "CE1", "CE2", "CM1", "CM2"],
+      "description": "Niveau scolaire de référence pour adapter le vocabulaire et les compétences."
+    },
+    "competency_id": {
+      "type": ["string", "null"],
+      "default": null,
+      "description": "Identifiant de la compétence en cours de travail."
+    },
+    "mastery_pct": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Pourcentage estimé de maîtrise de la compétence ciblée."
+    },
+    "known_difficulty_tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "consignes",
+          "calcul_mental",
+          "memorisation",
+          "vitesse_lecture",
+          "abstraction",
+          "attention"
+        ]
+      },
+      "default": [],
+      "description": "Tags cognitifs/pédagogiques génériques (sans étiquette médicale)."
+    },
+    "effective_adaptation_tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "exemple_visuel",
+          "consigne_courte",
+          "audio_guidance",
+          "analogies_du_quotidien",
+          "decoupage_etapes"
+        ]
+      },
+      "default": [],
+      "description": "Stratégies d'adaptation ayant démontré une efficacité passée."
+    },
+    "last_session_minutes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Durée cumulée de travail sur la session en cours en minutes."
+    }
+  },
+  "additionalProperties": false
+}
+

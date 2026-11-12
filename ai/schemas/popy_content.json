@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://popyacademy/schemas/popy_content.json",
+  "title": "PopyContent",
+  "description": "Contenu pédagogique POPY (exercice, leçon, indice, remédiation) ancré sur une compétence officielle.",
+  "type": "object",
+  "required": [
+    "id",
+    "official_competency_ids",
+    "objective_popy",
+    "difficulty",
+    "modality",
+    "exercise",
+    "hints",
+    "correction",
+    "explanation",
+    "validation_status",
+    "language"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Identifiant unique du contenu (ex: content_frac_visuel_01)."
+    },
+    "official_competency_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Compétence(s) officielle(s) du BO à laquelle ce contenu se rattache."
+    },
+    "objective_popy": {
+      "type": "string",
+      "description": "Objectif pédagogique opérationnel formulé pour l'enfant."
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": ["easy", "standard", "remediation"],
+      "description": "Niveau de difficulté relative pour l'activité."
+    },
+    "modality": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["visual", "text", "audio", "interactive"]
+      },
+      "minItems": 1,
+      "description": "Modalités de restitution offertes par ce contenu."
+    },
+    "exercise": {
+      "type": "string",
+      "description": "Énoncé complet de l'exercice ou consigne d'activité."
+    },
+    "hints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Indices progressifs pour guider l'enfant sans donner la solution brute."
+    },
+    "correction": {
+      "type": "string",
+      "description": "Réponse attendue ou solution de référence."
+    },
+    "explanation": {
+      "type": "string",
+      "description": "Explication pédagogique récapitulative après résolution."
+    },
+    "adaptations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "consigne_courte",
+          "exemple_visuel",
+          "audio_guidance",
+          "police_dys",
+          "contrast_high",
+          "decoupage_etapes"
+        ]
+      },
+      "default": [],
+      "description": "Tags d'accessibilité et adaptations pédagogiques spécifiques."
+    },
+    "validation_status": {
+      "type": "string",
+      "enum": ["DRAFT", "REVIEWED", "INSTITUTIONAL"],
+      "description": "Statut de validation pédagogique."
+    },
+    "validated_by": {
+      "type": ["string", "null"],
+      "default": null,
+      "description": "Identifiant ou signature de l'expert pédagogique validateur."
+    },
+    "language": {
+      "type": "string",
+      "default": "fr",
+      "description": "Code langue ISO 639-1."
+    }
+  },
+  "additionalProperties": false
+}
+

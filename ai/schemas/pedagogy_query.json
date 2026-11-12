@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://popyacademy/schemas/pedagogy_query.json",
+  "title": "PedagogyQuery",
+  "description": "Contrat de requête envoyé au endpoint POST /pedagogy/ask.",
+  "type": "object",
+  "required": [
+    "session_id",
+    "message"
+  ],
+  "properties": {
+    "session_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Identifiant unique de la session de travail en cours."
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000,
+      "description": "Message ou question posée par l'enfant ou l'éducateur."
+    },
+    "intent": {
+      "type": "string",
+      "enum": [
+        "programme",
+        "exercice",
+        "aide",
+        "remediation",
+        "bilan",
+        "chitchat",
+        "autre"
+      ],
+      "default": "autre",
+      "description": "Intention détectée ou fournie par le client."
+    },
+    "level": {
+      "type": "string",
+      "enum": ["CP", "CE1", "CE2", "CM1", "CM2"],
+      "description": "Niveau scolaire de l'enfant (optionnel si transmis via learning_context)."
+    },
+    "subject": {
+      "type": "string",
+      "enum": ["Mathématiques", "Français", "Sciences", "Histoire-Géo", "Autre"],
+      "description": "Discipline concernée si connue."
+    },
+    "learning_context": {
+      "$ref": "child_learning_context.json",
+      "description": "Contexte minimisé sans PII."
+    },
+    "device": {
+      "type": "string",
+      "enum": ["web", "robot"],
+      "default": "web",
+      "description": "Canal d'origine de la requête."
+    }
+  },
+  "additionalProperties": false
+}
+

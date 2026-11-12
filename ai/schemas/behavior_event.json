@@ -1,0 +1,713 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://popyacademy/schemas/behavior_event.json",
+  "title": "BehaviorEvent",
+  "description": "Événement comportement émis par l'application Popy Academy chaque fois qu'un enfant interagit avec une activité ou le chat IA. Ce schéma est le contrat entre le front-end et le pipeline de données IA.",
+  "type": "object",
+  "required": [
+    "event_id",
+    "ts",
+    "schema_version",
+    "device",
+    "session_id",
+    "child_id_hash",
+    "type",
+    "payload"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Identifiant unique de l'événement (UUID v4 généré côté client). Permet la déduplication en cas de retry réseau."
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Horodatage ISO-8601 UTC de l'événement. Généré côté client au moment de l'action."
+    },
+    "schema_version": {
+      "type": "string",
+      "enum": [
+        "1.0",
+        "1.1",
+        "1.2"
+      ],
+      "description": "Version du schéma. Ajout de la v1.2 pour le suivi du RAG."
+    },
+    "device": {
+      "type": "string",
+      "enum": [
+        "web",
+        "robot"
+      ],
+      "description": "Canal d'émission : 'web' ou 'robot'."
+    },
+    "session_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Identifiant de la session de travail."
+    },
+    "child_id_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Identifiant pseudonymisé de l'enfant : HMAC-SHA256(child_id, clé_serveur)."
+    },
+    "sync_policy": {
+      "type": "string",
+      "enum": [
+        "stream",
+        "local_buffer",
+        "local_only"
+      ],
+      "description": "Politique de transport de l'événement."
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "session_start",
+        "session_end",
+        "activity_start",
+        "activity_success",
+        "activity_fail",
+        "hint_used",
+        "abandon",
+        "pause",
+        "resume",
+        "vision_signal",
+        "chat_interaction",
+        "chat_feedback",
+        "rag_refusal",
+        "llm_telemetry"
+      ],
+      "description": "Type d'événement. Détermine la structure du payload."
+    },
+    "payload": {
+      "type": "object",
+      "description": "Données spécifiques au type d'événement."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "session_start"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "child_level": {
+                "type": "string",
+                "enum": [
+                  "CP",
+                  "CE1",
+                  "CE2",
+                  "CM1",
+                  "CM2"
+                ]
+              },
+              "subscription_type": {
+                "type": "string",
+                "enum": [
+                  "ordinateur",
+                  "famille",
+                  "ecole"
+                ]
+              },
+              "is_offline": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "session_end"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "duration_ms"
+            ],
+            "properties": {
+              "duration_ms": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "activities_completed": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "activities_attempted": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "user_logout",
+                  "inactivity_timeout",
+                  "app_close",
+                  "crash",
+                  "unknown"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "activity_start"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "content_id"
+            ],
+            "properties": {
+              "content_id": {
+                "type": "string"
+              },
+              "difficulty": {
+                "type": "string",
+                "enum": [
+                  "easy",
+                  "standard",
+                  "remediation"
+                ]
+              },
+              "activity_type": {
+                "type": "string",
+                "enum": [
+                  "exercise",
+                  "quiz",
+                  "game",
+                  "reading"
+                ]
+              },
+              "competency_id": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "activity_success"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "content_id",
+              "duration_ms",
+              "attempt"
+            ],
+            "properties": {
+              "content_id": {
+                "type": "string"
+              },
+              "duration_ms": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "attempt": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "score_pct": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "hints_used_count": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "activity_fail"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "content_id",
+              "duration_ms",
+              "attempt"
+            ],
+            "properties": {
+              "content_id": {
+                "type": "string"
+              },
+              "duration_ms": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "attempt": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "error_category": {
+                "type": "string",
+                "enum": [
+                  "wrong_answer",
+                  "timeout",
+                  "incomplete",
+                  "unknown"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "hint_used"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "content_id",
+              "hint_index",
+              "attempt"
+            ],
+            "properties": {
+              "content_id": {
+                "type": "string"
+              },
+              "hint_index": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "attempt": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "abandon"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "duration_ms"
+            ],
+            "properties": {
+              "content_id": {
+                "type": "string",
+                "description": "Optionnel pour ne pas bloquer l'abandon depuis le menu principal."
+              },
+              "duration_ms": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "attempt": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "completion_pct": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "trigger": {
+                "type": "string",
+                "enum": [
+                  "user_navigation",
+                  "inactivity_timeout",
+                  "session_end",
+                  "unknown"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "pause"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "content_id": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "user_action",
+                  "inactivity_timeout",
+                  "system"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "resume"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "pause_duration_ms"
+            ],
+            "properties": {
+              "content_id": {
+                "type": "string"
+              },
+              "pause_duration_ms": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "vision_signal"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "device": {
+            "const": "robot"
+          },
+          "payload": {
+            "type": "object",
+            "required": [
+              "attention_state"
+            ],
+            "properties": {
+              "attention_state": {
+                "type": "string",
+                "enum": [
+                  "focused",
+                  "distracted",
+                  "absent",
+                  "unknown"
+                ]
+              },
+              "engagement_level": {
+                "type": "string",
+                "enum": [
+                  "high",
+                  "medium",
+                  "low",
+                  "unknown"
+                ]
+              },
+              "fatigue_detected": {
+                "type": "boolean"
+              },
+              "context": {
+                "type": "string",
+                "enum": [
+                  "activity",
+                  "between_activities"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "chat_interaction"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "intent",
+              "grounded",
+              "response_time_ms"
+            ],
+            "properties": {
+              "intent": {
+                "type": "string",
+                "enum": [
+                  "programme",
+                  "aide",
+                  "conversation",
+                  "hors_sujet"
+                ]
+              },
+              "grounded": {
+                "type": "boolean"
+              },
+              "sources_used": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "response_time_ms": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "chat_feedback"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "interaction_id",
+              "rating"
+            ],
+            "properties": {
+              "interaction_id": {
+                "type": "string"
+              },
+              "rating": {
+                "type": "string",
+                "enum": [
+                  "upvote",
+                  "downvote"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "hors_sujet",
+                  "trop_complexe",
+                  "autre"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "rag_refusal"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "intent_detected",
+              "trigger"
+            ],
+            "properties": {
+              "intent_detected": {
+                "type": "string"
+              },
+              "trigger": {
+                "type": "string",
+                "enum": [
+                  "empty_sources",
+                  "safety_filter"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "llm_telemetry"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "type": "object",
+            "required": [
+              "prompt_tokens",
+              "completion_tokens",
+              "model_version"
+            ],
+            "properties": {
+              "prompt_tokens": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "completion_tokens": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "model_version": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "_notes": {
+      "description": "Notes pour les développeurs",
+      "privacy": "Ne jamais inclure : nom réel, email, école, diagnostic médical, carnet privé, contenu de message famille. Le child_id_hash est la seule référence à l'enfant autorisée.",
+      "offline": "Si l'app est offline, les événements sont mis en file locale (IndexedDB) et envoyés en batch au retour réseau. Le champ 'ts' doit refléter l'heure RÉELLE de l'action, pas l'heure d'envoi.",
+      "deduplication": "Le backend doit ignorer silencieusement les event_id déjà reçus (idempotence).",
+      "evolution": "Pour ajouter un nouveau type d'événement : incrémenter schema_version + ADR + mise à jour de behavior_event_dict.md.",
+      "child_id_hash_key": "La clé HMAC est rotée tous les 90 jours. Les anciens hashs ne sont pas retrouvés après rotation (privacy by design). Coordonner avec Yacine (RGPD)."
+    }
+  }
+}

@@ -1,0 +1,18 @@
+# Modèles de refus standards POPY Academy (Français)
+# Règle d'or : Si aucune source officielle n'est trouvée pour l'intention "programme", interdiction formelle d'inventer.
+
+[OUT_OF_CURRICULUM]
+Cette notion ne figure pas dans le programme officiel pour ton niveau ({LEVEL}). Pour bien progresser étape par étape, nous nous concentrons sur les notions prévues pour ta classe. N'hésite pas à demander à ton enseignant ou à ton enseignante si tu es curieux d'en savoir plus !
+
+[NO_OFFICIAL_SOURCE]
+Je n'ai pas trouvé cette notion dans le référentiel officiel de l'Éducation Nationale pour {SUBJECT} en {LEVEL}. Pour ne pas te donner d'informations inexactes, je préfère ne pas inventer. Veux-tu qu'on revoie ensemble une notion de ton programme, comme les fractions ou les nombres décimaux ?
+
+[AIDE_DEVOIRS_NO_DIRECT_ANSWER]
+Je suis là pour t'aider à comprendre et à trouver la solution par toi-même, pas pour faire l'exercice à ta place ! Regardons ensemble la première étape : que nous dit la consigne ?
+
+[SAFETY_PII_OR_INAPPROPRIATE]
+Je suis Popy, ton compagnon d'apprentissage scolaire. Je ne peux pas discuter de sujets personnels ou non éducatifs. Si tu as besoin d'aide ou si quelque chose ne va pas, parles-en à un adulte de confiance (tes parents ou ton enseignant).
+
+[JAILBREAK_OVERRIDE_ATTEMPT]
+Je suis programmé pour respecter strictement les programmes officiels de l'Éducation Nationale et pour t'accompagner dans tes apprentissages scolaires. Je ne peux pas modifier ces règles.
+

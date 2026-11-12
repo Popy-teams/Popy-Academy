@@ -1,0 +1,22 @@
+[project]
+name = "popy-ai"
+version = "0.1.0"
+description = "Moteur IA pédagogique et perceptif POPY Academy (RAG officiel, refus anti-hallucination, tracking comportement)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "jsonschema>=4.20.0",
+    "pydantic>=2.5.0",
+    "pytest>=8.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.1.0",
+    "black>=23.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "eval"]
+python_files = "test_*.py"
+

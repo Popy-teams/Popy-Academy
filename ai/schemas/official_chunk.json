@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://popyacademy/schemas/official_chunk.json",
+  "title": "OfficialChunk",
+  "description": "Fragment structuré issu des programmes officiels (BO / Éduscol) servant de source de vérité pour le RAG.",
+  "type": "object",
+  "required": [
+    "id",
+    "cycle",
+    "levels",
+    "subject",
+    "domain",
+    "topic",
+    "text",
+    "source_type",
+    "source_ref",
+    "version",
+    "license"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Identifiant unique du chunk (ex: chunk_cm1_maths_fractions_01)."
+    },
+    "cycle": {
+      "type": "string",
+      "enum": ["1", "2", "3", "4"],
+      "description": "Cycle d'enseignement officiel (ex: 2 pour CP-CE1-CE2, 3 pour CM1-CM2-6e)."
+    },
+    "levels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["CP", "CE1", "CE2", "CM1", "CM2", "6e"]
+      },
+      "minItems": 1,
+      "description": "Niveau(x) scolaire(s) concerné(s) par ce chunk."
+    },
+    "subject": {
+      "type": "string",
+      "description": "Discipline scolaire (ex: Mathématiques, Français)."
+    },
+    "domain": {
+      "type": "string",
+      "description": "Sous-domaine d'apprentissage (ex: Nombres et calculs, Grandeurs et mesures, Étude de la langue)."
+    },
+    "topic": {
+      "type": "string",
+      "description": "Thématique spécifique (ex: Fractions, Nombres décimaux, Accords dans le GN)."
+    },
+    "competency_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Identifiants des compétences officielles rattachées à cet extrait."
+    },
+    "text": {
+      "type": "string",
+      "minLength": 10,
+      "description": "Texte exact extrait du document institutionnel, formulé sous forme d'attendus ou repères de progression."
+    },
+    "source_type": {
+      "type": "string",
+      "enum": ["BO", "EDUSCOL", "MENJ_DECRET"],
+      "description": "Nature institutionnelle de la source."
+    },
+    "source_ref": {
+      "type": "string",
+      "description": "Référence bibliographique ou administrative officielle (ex: BO n°16 du 17 avril 2025)."
+    },
+    "source_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL officielle vers la publication institutionnelle (legifrance, education.gouv.fr, eduscol)."
+    },
+    "version": {
+      "type": "string",
+      "description": "Version ou millésime du programme (ex: 2025-04)."
+    },
+    "license": {
+      "type": "string",
+      "default": "Licence Ouverte v2.0 (Etalab) / Citation pédagogique",
+      "description": "Licence juridique régissant la réutilisation du texte."
+    },
+    "embedding_id": {
+      "type": ["string", "null"],
+      "default": null,
+      "description": "Identifiant du vecteur d'embedding si indexé dans pgvector."
+    }
+  },
+  "additionalProperties": false
+}
+
