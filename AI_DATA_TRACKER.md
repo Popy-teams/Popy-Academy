@@ -11,7 +11,7 @@
 |---|---|---|---|
 | **Phase 1** | Ven 6 nov. – Ven 13 nov. | **Fondations et Contrats** | **[x] Livré** |
 | **Phase 2** | Ven 13 nov. – Ven 20 nov. | Matière première & Infra | **[x] Livré** |
-| **Phase 3** | Ven 20 nov. – Ven 27 nov. | Moteur de recherche « à vide » (Stub) | [ ] À venir |
+| **Phase 3** | Ven 20 nov. – Ven 27 nov. | Moteur de recherche « à vide » (Stub) | **[x] Livré** |
 | **Phase 4** | Ven 27 nov. – Ven 4 déc. | Injection de l'Intelligence (LLM) | [ ] À venir |
 | **Phase 5** | Ven 4 déc. – Ven 11 déc. | Intégration Finale (Chat & Events) | [ ] À venir |
 
@@ -48,8 +48,17 @@
 
 ---
 
-## Prochaine étape : Phase 3 (Semaine 3 : 20 nov. – 27 nov.)
-- [ ] Relier les exercices POPY aux compétences officielles.
-- [ ] Ouvrir l'API POST `/pedagogy/ask` avec un bouchon statique (Stub).
-- [ ] Valider la récupération (RAG stub) locale sans LLM.
+## Phase 3 : Moteur de recherche « à vide » (Semaine 3 : 20 nov. – 27 nov.)
+- [x] **Banque d'exercices POPY ancrés (Base B)** : [ai/datasets/ds-popy-contents/contents_v0.jsonl](ai/datasets/ds-popy-contents/contents_v0.jsonl) (15 exercices réels CM1/CE2 conformes à `popy_content.json`) et sa [CARD.md](ai/datasets/ds-popy-contents/CARD.md).
+- [x] **Sélecteur d'activités adaptatif** : [ai/src/retrieve/retrieve_contents.py](ai/src/retrieve/retrieve_contents.py) (sélection par compétence et priorisation des adaptations visuelles).
+- [x] **Orchestrateur RAG Bouchon (Stub sans LLM)** : [ai/src/orchestrator/ask_stub.py](ai/src/orchestrator/ask_stub.py) (assemblage de `GroundedAnswer` sourcé et déclenchement des refus standards).
+- [x] **Banc d'évaluation automatique Gold Dataset** : [ai/eval/run_stub.py](ai/eval/run_stub.py) et rapport [ai/eval/reports/2026-11-stub.md](ai/eval/reports/2026-11-stub.md) (**100 % de précision sur les 40 questions** : 27/27 réponses sourcées et 13/13 refus conformes).
+
+---
+
+## Prochaine étape : Phase 4 (Semaine 4 : 27 nov. – 4 déc.)
+- [ ] Verrouiller le System Prompt pour bloquer les hallucinations.
+- [ ] Brancher le LLM (script Python) et classifier les intentions.
+- [ ] Évaluer le moteur avec le Gold Dataset et corriger.
+- [ ] Connecter la vraie logique IA à l'API Fastify.
 

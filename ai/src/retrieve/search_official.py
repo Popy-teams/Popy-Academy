@@ -23,12 +23,13 @@ DEFAULT_DATASET_PATH = Path("ai/datasets/ds-rag-official/chunks_v0.jsonl")
 FRENCH_STOPWORDS = {
     "le", "la", "les", "un", "une", "des", "du", "de", "d", "l",
     "et", "ou", "mais", "donc", "or", "ni", "car", "a", "à", "au", "aux",
-    "en", "dans", "par", "pour", "sur", "avec", "sans", "sous",
+    "en", "dans", "par", "pour", "sur", "avec", "sans", "sous", "vers",
     "ce", "cet", "cette", "ces", "mon", "ton", "son", "notre", "votre", "leur",
     "je", "tu", "il", "elle", "on", "nous", "vous", "ils", "elles",
-    "qui", "que", "quoi", "dont", "où", "est", "sont", "c", "se", "sa",
+    "qui", "que", "quoi", "dont", "où", "est", "sont", "c", "se", "sa", "ses",
     "qu", "quel", "quelle", "quels", "quelles", "comment", "pourquoi", "combien",
-    "faire", "dire", "avoir", "etre", "être"
+    "pas", "ne", "plus", "tout", "tous", "toute", "toutes", "tres", "trop",
+    "faire", "dire", "avoir", "etre", "être", "arrive", "peux", "veut", "signifie"
 }
 
 
@@ -43,12 +44,15 @@ def normalize_text(text: str) -> str:
 
 
 def stem_token(word: str) -> str:
-    """Stemming basique en français (gestion des pluriels en -s, -x)."""
-    if len(word) > 3:
-        if word.endswith("s") and not word.endswith("ss"):
-            return word[:-1]
-        if word.endswith("x"):
-            return word[:-1]
+    """Stemming morphologique pour le français (pluriels, suffixes verbaux, nominalisations)."""
+    if len(word) > 5 and word.endswith("aison"):
+        return word[:-5]
+    if len(word) > 4:
+        for suffix in ("ement", "er", "ez", "ent", "ant", "es", "ait", "e", "s", "x"):
+            if word.endswith(suffix):
+                return word[:-len(suffix)]
+    elif len(word) > 3 and word.endswith("s"):
+        return word[:-1]
     return word
 
 
@@ -88,7 +92,7 @@ class OfficialRetriever:
         level: Optional[str] = None,
         subject: Optional[str] = None,
         top_k: int = 3,
-        min_score: float = 0.15,
+        min_score: float = 0.14,
     ) -> List[Dict[str, Any]]:
         """
         Recherche les chunks officiels les plus pertinents pour une requête donnée.
@@ -126,29 +130,35 @@ class OfficialRetriever:
 
             score = 0.0
             matched_terms = 0
+            has_substantive_match = False
 
             for q_term in query_tokens:
                 term_score = 0.0
+                in_topic = q_term in topic_tokens
+                in_text = text_tokens.count(q_term)
+
                 # Match dans le sujet / topic (poids x3)
-                if q_term in topic_tokens:
+                if in_topic:
                     term_score += 3.0
-                # Match dans le domaine (poids x1.5)
-                if q_term in domain_tokens:
-                    term_score += 1.5
+                    has_substantive_match = True
+
                 # Match dans le corps du texte (fréquence)
-                text_count = text_tokens.count(q_term)
-                if text_count > 0:
-                    term_score += 1.0 + math.log1p(text_count)
+                if in_text > 0:
+                    term_score += 1.0 + math.log1p(in_text)
+                    has_substantive_match = True
+
+                # Match dans le domaine (poids x1.0, bonus secondaire uniquement)
+                if q_term in domain_tokens and has_substantive_match:
+                    term_score += 1.0
 
                 if term_score > 0:
                     score += term_score
                     matched_terms += 1
 
-            if score > 0:
+            if score > 0 and has_substantive_match:
                 # Normalisation du score entre 0.0 et 1.0
-                # Plus la proportion de mots de la requête est couverte, plus le score monte
                 query_coverage = matched_terms / len(query_tokens)
-                normalized_score = min(1.0, round((score / (len(query_tokens) * 4.0)) * (0.5 + 0.5 * query_coverage), 2))
+                normalized_score = min(1.0, round((score / (len(query_tokens) * 3.5)) * (0.5 + 0.5 * query_coverage), 2))
 
                 if normalized_score >= min_score:
                     scored_results.append({
@@ -173,7 +183,7 @@ def search_official(
     level: Optional[str] = None,
     subject: Optional[str] = None,
     top_k: int = 3,
-    min_score: float = 0.15,
+    min_score: float = 0.14,
     dataset_path: Path = DEFAULT_DATASET_PATH,
 ) -> List[Dict[str, Any]]:
     """Fonction utilitaire principale pour interroger le référentiel officiel."""
