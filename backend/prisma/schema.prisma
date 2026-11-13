@@ -553,3 +553,51 @@ model Subscription {
   @@index([userId, status])
   @@map("subscriptions")
 }
+
+// ============================================================================
+// MODULE IA & PÉDAGOGIE (RAG & COMPORTEMENT)
+// ============================================================================
+
+model OfficialChunk {
+  id            String   @id
+  cycle         String
+  levels        String[]
+  subject       String
+  domain        String
+  topic         String
+  competencyIds String[] @default([]) @map("competency_ids")
+  text          String
+  sourceType    String   @default("BO") @map("source_type")
+  sourceRef     String   @map("source_ref")
+  sourceUrl     String?  @map("source_url")
+  version       String   @default("2025-04")
+  license       String   @default("Licence Ouverte v2.0 (Etalab) / Citation pédagogique")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([subject, cycle])
+  @@index([isActive])
+  @@map("official_chunks")
+}
+
+model BehaviorEvent {
+  id            String   @id @default(uuid())
+  eventId       String   @unique @map("event_id")
+  ts            DateTime
+  schemaVersion String   @default("1.2") @map("schema_version")
+  device        String
+  sessionId     String   @map("session_id")
+  childIdHash   String   @map("child_id_hash")
+  syncPolicy    String?  @map("sync_policy")
+  type          String
+  payload       Json
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([sessionId])
+  @@index([childIdHash])
+  @@index([type])
+  @@index([ts])
+  @@map("behavior_events")
+}
+

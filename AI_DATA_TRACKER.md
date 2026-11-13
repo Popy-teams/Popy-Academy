@@ -10,7 +10,7 @@
 | Phase | Dates | Thème | Statut |
 |---|---|---|---|
 | **Phase 1** | Ven 6 nov. – Ven 13 nov. | **Fondations et Contrats** | **[x] Livré** |
-| **Phase 2** | Ven 13 nov. – Ven 20 nov. | Matière première & Infra | **[-] En cours** |
+| **Phase 2** | Ven 13 nov. – Ven 20 nov. | Matière première & Infra | **[x] Livré** |
 | **Phase 3** | Ven 20 nov. – Ven 27 nov. | Moteur de recherche « à vide » (Stub) | [ ] À venir |
 | **Phase 4** | Ven 27 nov. – Ven 4 déc. | Injection de l'Intelligence (LLM) | [ ] À venir |
 | **Phase 5** | Ven 4 déc. – Ven 11 déc. | Intégration Finale (Chat & Events) | [ ] À venir |
@@ -42,6 +42,14 @@
 - [x] **Dataset officiel v0 produit** : [ai/datasets/ds-rag-official/chunks_v0.jsonl](ai/datasets/ds-rag-official/chunks_v0.jsonl) (20 chunks structurés CM1 fractions/décimaux + CE2) et sa [CARD.md](ai/datasets/ds-rag-official/CARD.md).
 - [x] **Moteur de recherche textuelle v1** : [ai/src/retrieve/search_official.py](ai/src/retrieve/search_official.py) (scoring pondéré, stemmer français, filtrage strict par niveau et discipline).
 - [x] **Tests unitaires de retrieval (10/10 assertions passées)** : [ai/tests/test_retrieve_official.py](ai/tests/test_retrieve_official.py) (validation des hits CM1/CE2, filtrage par niveau et blocage anti-hallucination à 0 hit).
-- [ ] Créer les tables PostgreSQL Prisma (`official_chunks` et `behavior_events`).
-- [ ] Initialiser l'indexation SQL `tsvector` dans PostgreSQL.
+- [x] **Création des modèles Prisma & tables PostgreSQL** : `official_chunks` et `behavior_events` dans [backend/prisma/schema.prisma](backend/prisma/schema.prisma).
+- [x] **Migration SQL avec index plein-texte `tsvector`** : [backend/prisma/migrations/20261113123000_ai_official_chunks_and_behavior_events/migration.sql](backend/prisma/migrations/20261113123000_ai_official_chunks_and_behavior_events/migration.sql) (indexation GIN en français).
+- [x] **Génération du seed SQL d'insertion** : [ai/etl/generate_sql_seed.py](ai/etl/generate_sql_seed.py) -> [backend/prisma/seed_official_chunks.sql](backend/prisma/seed_official_chunks.sql) (20 chunks prêts à être injectés dans PostgreSQL).
+
+---
+
+## Prochaine étape : Phase 3 (Semaine 3 : 20 nov. – 27 nov.)
+- [ ] Relier les exercices POPY aux compétences officielles.
+- [ ] Ouvrir l'API POST `/pedagogy/ask` avec un bouchon statique (Stub).
+- [ ] Valider la récupération (RAG stub) locale sans LLM.
 
