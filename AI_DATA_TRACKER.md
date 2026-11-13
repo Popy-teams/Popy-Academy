@@ -10,7 +10,7 @@
 | Phase | Dates | Thème | Statut |
 |---|---|---|---|
 | **Phase 1** | Ven 6 nov. – Ven 13 nov. | **Fondations et Contrats** | **[x] Livré** |
-| **Phase 2** | Ven 13 nov. – Ven 20 nov. | Matière première & Infra | [ ] À venir |
+| **Phase 2** | Ven 13 nov. – Ven 20 nov. | Matière première & Infra | **[-] En cours** |
 | **Phase 3** | Ven 20 nov. – Ven 27 nov. | Moteur de recherche « à vide » (Stub) | [ ] À venir |
 | **Phase 4** | Ven 27 nov. – Ven 4 déc. | Injection de l'Intelligence (LLM) | [ ] À venir |
 | **Phase 5** | Ven 4 déc. – Ven 11 déc. | Intégration Finale (Chat & Events) | [ ] À venir |
@@ -36,8 +36,12 @@
 
 ---
 
-## Prochaine étape : Phase 2 (Semaine 2 : 13 nov. – 20 nov.)
-- [ ] Extraire et découper les programmes Éduscol (Maths CM1 / Fractions) en JSONL (`ai/etl/official_to_chunks.py`).
-- [ ] Créer les tables PostgreSQL Prisma (`official_chunks`).
-- [ ] Initialiser la recherche textuelle (`tsvector`) dans PostgreSQL.
+## Phase 2 : Matière Première et Infra (Semaine 2 : 13 nov. – 20 nov.)
+- [x] **Sources v1 cadrées** : [ai/docs/sources_v1.md](ai/docs/sources_v1.md) (Éduscol BO n°31, URLs vérifiées, licence Etalab, stratégie versioning et procédure de veille).
+- [x] **Pipeline ETL d'extraction & découpage** : [ai/etl/official_to_chunks.py](ai/etl/official_to_chunks.py) (script avec validation automatique de schéma).
+- [x] **Dataset officiel v0 produit** : [ai/datasets/ds-rag-official/chunks_v0.jsonl](ai/datasets/ds-rag-official/chunks_v0.jsonl) (20 chunks structurés CM1 fractions/décimaux + CE2) et sa [CARD.md](ai/datasets/ds-rag-official/CARD.md).
+- [x] **Moteur de recherche textuelle v1** : [ai/src/retrieve/search_official.py](ai/src/retrieve/search_official.py) (scoring pondéré, stemmer français, filtrage strict par niveau et discipline).
+- [x] **Tests unitaires de retrieval (10/10 assertions passées)** : [ai/tests/test_retrieve_official.py](ai/tests/test_retrieve_official.py) (validation des hits CM1/CE2, filtrage par niveau et blocage anti-hallucination à 0 hit).
+- [ ] Créer les tables PostgreSQL Prisma (`official_chunks` et `behavior_events`).
+- [ ] Initialiser l'indexation SQL `tsvector` dans PostgreSQL.
 
